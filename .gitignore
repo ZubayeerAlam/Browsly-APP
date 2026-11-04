@@ -51,5 +51,6 @@ app.*.map.json
 env.json
 .env
 .env.*
+!.env.example
 supabase/.branches
 supabase/.temp

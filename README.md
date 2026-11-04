@@ -21,6 +21,10 @@ flutter run --dart-define-from-file=env.json
 
 On an Android emulator, use `http://10.0.2.2:54321` as the Supabase URL.
 
+### Google sign-in
+
+Copy `supabase/.env.example` to `supabase/.env`, add your Google OAuth client ID and secret, then restart Supabase. Set `GOOGLE_SIGN_IN_ENABLED` to `true` in `env.json` to show the button. The Google client needs this redirect URI for local development: `http://127.0.0.1:54321/auth/v1/callback`.
+
 ### Local test sign-in
 
 - **Phone:** `01700000000` or `01700000001` with code `123456`. No real SMS is sent.

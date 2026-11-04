@@ -19,7 +19,7 @@ enable_signup = true
 minimum_password_length = 8
 
 [auth.email]
-enable_signup = true
+enabled = true
 enable_confirmations = true
 max_frequency = "1m"
 
@@ -31,7 +31,7 @@ token_verifications = 30
 sign_in_sign_ups = 30
 
 [auth.sms]
-enable_signup = true
+enabled = true
 enable_confirmations = true
 template = "Your Browsly code is {{ .Code }}"
 max_frequency = "1m"
@@ -50,6 +50,13 @@ enabled = true
 account_sid = "local-placeholder"
 message_service_sid = "local-placeholder"
 auth_token = "local-placeholder"
+
+# Google sign-in. The values come from supabase/.env, which git ignores.
+# See supabase/.env.example.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
 
 [functions.delete-account]
 verify_jwt = true
