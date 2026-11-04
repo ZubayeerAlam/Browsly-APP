@@ -18,7 +18,7 @@ Full details are in [plan.md](plan.md).
 ## Progress
 
 - [x] Planning: `plan.md` and `build.md` created
-- [ ] Step 0: Foundation
+- [x] Step 0: Foundation
 - [ ] Step 1: Accounts
 - [ ] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review
@@ -40,13 +40,13 @@ Full details are in [plan.md](plan.md).
 - [x] Apply theme from demo UI (colours and Inter font)
 - [x] Build shared loading, empty and error widgets
 - [x] Set up GoRouter with five tabs and auth redirects
-- [ ] Initialise Supabase locally (`supabase/config.toml` written; **needs Supabase CLI and Docker to run**)
-- [ ] Add first migrations and seed data (written; **not run yet**)
-- [ ] Set up CI (`.github/workflows/ci.yml` written; **not run yet**)
+- [x] Initialise Supabase locally
+- [x] Add first migrations and seed data (9 database tests pass)
+- [x] Set up CI (first run on GitHub passed)
 
 **Done when:** the app opens with all five tabs, `supabase db reset` works, and `flutter analyze` and `flutter test` pass.
 
-**Status:** the app part is verified on the iOS Simulator, and the Android build succeeds. The database checks are still open.
+**Status:** complete. The app is verified on the iOS Simulator, the Android build succeeds, and the database checks and CI pass.
 
 ## Step 1: Accounts
 
