@@ -1,18 +1,37 @@
-# browsly_app
+# Browsly
 
-A new Flutter project.
+A multi-vendor marketplace app for Android and iOS, built with Flutter and Supabase.
 
-## Getting Started
+- [plan.md](plan.md): the full Release 1 plan
+- [build.md](build.md): the step-by-step progress tracker
 
-This project is a starting point for a Flutter application.
+## Run the app
 
-A few resources to get you started if this is your first Flutter project:
+Browse as a guest during development, without any Supabase settings:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# Browsly-APP
+To connect to Supabase, copy `env.example.json` to `env.json`, fill in your values, then run:
+
+```bash
+flutter run --dart-define-from-file=env.json
+```
+
+Only public values belong in `env.json`. Never add the Supabase service role key to the app.
+
+## Run the checks
+
+```bash
+flutter analyze
+flutter test
+```
+
+Database commands need the [Supabase CLI](https://supabase.com/docs/guides/local-development) and Docker:
+
+```bash
+supabase db start
+supabase db reset
+supabase test db
+```
