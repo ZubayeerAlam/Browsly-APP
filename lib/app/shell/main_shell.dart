@@ -10,12 +10,21 @@ class MainShell extends StatelessWidget {
   const MainShell({required this.shell, super.key});
 
   static const _postIndex = 4;
+  static const _tabPaths = [
+    AppRoutes.dashboard,
+    AppRoutes.products,
+    AppRoutes.sales,
+    AppRoutes.statistics,
+  ];
 
   final StatefulNavigationShell shell;
 
   void _onSelected(BuildContext context, int index) {
     if (index == _postIndex) {
-      context.push(AppRoutes.post);
+      // Back returns to whichever tab the user came from.
+      context.go(
+        AppRoutes.withFrom(AppRoutes.post, _tabPaths[shell.currentIndex]),
+      );
       return;
     }
     shell.goBranch(index, initialLocation: index == shell.currentIndex);

@@ -19,7 +19,7 @@ Full details are in [plan.md](plan.md).
 
 - [x] Planning: `plan.md` and `build.md` created
 - [x] Step 0: Foundation
-- [ ] Step 1: Accounts
+- [ ] Step 1: Accounts (in progress: needs Google, SMS and an Android test)
 - [ ] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review
 - [ ] Step 4: Buying
@@ -50,16 +50,20 @@ Full details are in [plan.md](plan.md).
 
 ## Step 1: Accounts
 
-- [ ] `profiles` table, signup trigger, RLS and tests
-- [ ] Email sign-in and password reset
-- [ ] Google sign-in
-- [ ] Phone OTP, SMS provider and rate limits
-- [ ] Phone verification gate
-- [ ] Profile and avatar
-- [ ] Addresses with Bangladesh regions
-- [ ] Account deletion (`delete-account`)
+- [x] `profiles` table, signup trigger, RLS and tests
+- [x] Email sign-in and password reset
+- [ ] Google sign-in (code ready and button hidden; **needs your Google account setup**)
+- [x] Phone OTP and rate limits (tested with test numbers)
+- [ ] Real Bangladesh SMS provider (**needs your provider account**)
+- [x] Phone verification gate
+- [x] Profile and avatar (photo location data is removed before upload)
+- [x] Addresses with Bangladesh regions
+- [x] Account deletion (`delete-account`)
+- [ ] Test the whole step on a real Android device or emulator
 
 **Done when:** all three sign-in methods work on a real device, and users cannot read each other's private data.
+
+**Status:** in progress. Email and phone sign-in work on the iOS Simulator, using test numbers. To finish: real Google sign-in, real SMS and an Android test.
 
 ## Step 2: Marketplace
 
@@ -79,6 +83,7 @@ Full details are in [plan.md](plan.md).
 - [ ] `become_seller` and shop setup
 - [ ] Storage buckets and policies
 - [ ] Post flow from the demo (max 5 JPG or PNG photos) with image compression and drafts
+- [ ] Pass product photos through `preparePhotoForUpload` so location data is removed, then check the stored file
 - [ ] Draft the prohibited-products policy for your approval
 - [ ] Choose and test a free AI model
 - [ ] `moderate-product`, adapter, queue, retries and tests
@@ -99,6 +104,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Checkout screen with friendly error handling
 - [ ] My Orders and order details
 - [ ] Buyer cancellation
+- [ ] Block account deletion while orders are open, and keep order records after deletion
 
 **Done when:** a buyer can order from two sellers, a race for the last item gives one success and one `OUT_OF_STOCK`, and a double tap creates one order.
 

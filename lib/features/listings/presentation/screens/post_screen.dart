@@ -5,7 +5,10 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_views.dart';
 
 class PostScreen extends StatelessWidget {
-  const PostScreen({super.key});
+  const PostScreen({this.backTo, super.key});
+
+  /// The tab to return to.
+  final String? backTo;
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +17,7 @@ class PostScreen extends StatelessWidget {
         title: const Text('Post'),
         centerTitle: true,
         leading: BackButton(
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(AppRoutes.dashboard),
+          onPressed: () => context.go(backTo ?? AppRoutes.dashboard),
         ),
       ),
       body: const EmptyView(

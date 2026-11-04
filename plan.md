@@ -489,9 +489,9 @@ To keep this beginner-friendly, there are **no separate use-case classes** unles
 **Planned packages**
 
 - Core: `provider`, `go_router`, `supabase_flutter`
-- Sign-in: `google_sign_in`
+- Sign-in: Google opens through Supabase in the browser, so no extra package is needed
 - Push: `firebase_core`, `firebase_messaging`, `flutter_local_notifications`
-- Media: `image_picker`, `flutter_image_compress`, `cached_network_image`
+- Media: `image_picker`, `flutter_image_compress` (also removes photo location data), `cached_network_image`
 - UI and formatting: `fl_chart`, `intl`, `google_fonts`, `share_plus`
 - Testing: `mocktail`
 

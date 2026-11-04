@@ -2,31 +2,50 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
-/// Holds the signed-in state. GoRouter listens to it to redirect screens.
+/// Holds who is signed in. GoRouter listens to it to redirect screens.
 class AuthProvider extends ChangeNotifier {
-  AuthProvider(this._repository) : _isSignedIn = _repository.isSignedIn {
-    _subscription = _repository.signedInChanges.listen(_onChanged);
+  AuthProvider(AuthRepository repository) : _user = repository.currentUser {
+    _subscriptions = [
+      repository.userChanges.listen(_onUserChanged),
+      repository.passwordRecoveryRequests.listen((_) {
+        _isRecoveringPassword = true;
+        notifyListeners();
+      }),
+    ];
   }
 
-  final AuthRepository _repository;
-  late final StreamSubscription<bool> _subscription;
-  bool _isSignedIn;
+  late final List<StreamSubscription<void>> _subscriptions;
+  AuthUser? _user;
+  bool _isRecoveringPassword = false;
 
-  bool get isSignedIn => _isSignedIn;
+  AuthUser? get user => _user;
+  bool get isSignedIn => _user != null;
+  bool get isPhoneVerified => _user?.isPhoneVerified ?? false;
 
-  void _onChanged(bool isSignedIn) {
-    if (isSignedIn == _isSignedIn) return;
-    _isSignedIn = isSignedIn;
+  /// True after a reset link opens the app, until a new password is saved.
+  bool get isRecoveringPassword => _isRecoveringPassword;
+
+  void finishPasswordRecovery() {
+    if (!_isRecoveringPassword) return;
+    _isRecoveringPassword = false;
     notifyListeners();
   }
 
-  Future<void> signOut() => _repository.signOut();
+  void _onUserChanged(AuthUser? user) {
+    if (user == _user) return;
+    _user = user;
+    if (user == null) _isRecoveringPassword = false;
+    notifyListeners();
+  }
 
   @override
   void dispose() {
-    _subscription.cancel();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
     super.dispose();
   }
 }

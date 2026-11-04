@@ -6,6 +6,7 @@ class AppConfig {
   const AppConfig({
     required this.supabaseUrl,
     required this.supabasePublishableKey,
+    this.isGoogleSignInEnabled = false,
   });
 
   factory AppConfig.fromEnvironment() {
@@ -14,11 +15,15 @@ class AppConfig {
       supabasePublishableKey: String.fromEnvironment(
         'SUPABASE_PUBLISHABLE_KEY',
       ),
+      isGoogleSignInEnabled: bool.fromEnvironment('GOOGLE_SIGN_IN_ENABLED'),
     );
   }
 
   final String supabaseUrl;
   final String supabasePublishableKey;
+
+  /// Hides the Google button until Google is set up in Supabase.
+  final bool isGoogleSignInEnabled;
 
   bool get isConfigured =>
       supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;

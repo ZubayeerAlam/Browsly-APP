@@ -4,8 +4,41 @@ abstract final class AppRoutes {
   static const sales = '/sales';
   static const statistics = '/statistics';
   static const post = '/post';
+
   static const login = '/login';
+  static const signUp = '/login/sign-up';
+  static const forgotPassword = '/login/forgot-password';
+  static const resetPassword = '/reset-password';
+  static const phoneSignIn = '/login/phone';
+  static const verifyPhone = '/verify-phone';
+
+  static const settings = '/settings';
+  static const editProfile = '/settings/profile';
+  static const accountSecurity = '/settings/security';
+  static const addresses = '/settings/addresses';
+  static const addressForm = '/settings/addresses/form';
+
+  /// Screens for guests. Signed-in users are sent onward.
+  static const guestOnly = {login, signUp, forgotPassword, phoneSignIn};
+
+  /// Screens that also need a verified phone, such as selling.
+  static const phoneVerifiedOnly = {post};
 
   /// Screens guests cannot open.
-  static const signedInOnly = {sales, statistics, post};
+  static bool requiresSignIn(String path) {
+    return path == sales ||
+        path == statistics ||
+        path == post ||
+        path == verifyPhone ||
+        path == settings ||
+        path.startsWith('$settings/');
+  }
+
+  /// Adds where the user was heading, so they can continue there afterwards.
+  static String withFrom(String path, String? from) {
+    return Uri(
+      path: path,
+      queryParameters: from == null ? null : {'from': from},
+    ).toString();
+  }
 }

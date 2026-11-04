@@ -7,3 +7,49 @@ major_version = 17
 [db.seed]
 enabled = true
 sql_paths = ["./seed.sql"]
+
+# Log analytics isn't needed for local development.
+[analytics]
+enabled = false
+
+[auth]
+site_url = "com.browsly.app://login-callback"
+additional_redirect_urls = ["com.browsly.app://login-callback"]
+enable_signup = true
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+max_frequency = "1m"
+
+# Limits that protect against OTP abuse and SMS costs.
+[auth.rate_limit]
+email_sent = 30
+sms_sent = 30
+token_verifications = 30
+sign_in_sign_ups = 30
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Your Browsly code is {{ .Code }}"
+max_frequency = "1m"
+
+# Test numbers receive this fixed code, and no real SMS is sent.
+# Local development only: these must never be used in production.
+[auth.sms.test_otp]
+8801700000000 = "123456"
+8801700000001 = "123456"
+
+# Supabase needs an SMS provider switched on to accept phone sign-in. These
+# placeholder values never send anything, because only test numbers are used
+# locally. The real Bangladesh provider is connected before launch.
+[auth.sms.twilio]
+enabled = true
+account_sid = "local-placeholder"
+message_service_sid = "local-placeholder"
+auth_token = "local-placeholder"
+
+[functions.delete-account]
+verify_jwt = true
