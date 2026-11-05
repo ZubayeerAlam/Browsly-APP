@@ -3,8 +3,10 @@ import '../../domain/entities/region.dart';
 
 abstract final class AddressModel {
   /// The columns [fromJson] needs, including the district and its division.
+  /// `division:parent_id` follows the link up to the parent. Writing
+  /// `regions!parent_id` here would return the district's children instead.
   static const selectColumns =
-      '*, district:regions!region_id(name, division:regions!parent_id(id, name))';
+      '*, district:regions!region_id(name, division:parent_id(id, name))';
 
   static Address fromJson(Map<String, dynamic> json) {
     final district = json['district'] as Map<String, dynamic>;

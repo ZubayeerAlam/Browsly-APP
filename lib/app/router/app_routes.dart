@@ -10,6 +10,19 @@ abstract final class AppRoutes {
   static const myPosts = '/my-posts';
   static const editShop = '/my-posts/shop';
 
+  static const cart = '/cart';
+  static const checkout = '/checkout';
+  static const checkoutAddressForm = '/checkout-address';
+  static const orders = '/orders';
+
+  /// Checkout for one of this item, leaving the cart as it is.
+  static String buyNow(String variantId) => '$checkout/$variantId';
+  static String order(String id) => '$orders/$id';
+
+  /// An order straight after checkout, with the success message.
+  static String placedOrder(String id) =>
+      Uri(path: order(id), queryParameters: {'placed': '1'}).toString();
+
   /// The Post flow for an existing listing, returning to My Posts.
   static String editListing(String id) => Uri(
     path: post,
@@ -42,11 +55,21 @@ abstract final class AppRoutes {
   static const guestOnly = {login, signUp, forgotPassword, phoneSignIn};
 
   /// Screens that also need a verified phone, such as selling.
-  static const phoneVerifiedOnly = {post};
+  static const phoneVerifiedOnly = {post, checkout};
+
+  static bool requiresVerifiedPhone(String path) {
+    return phoneVerifiedOnly.contains(path) || path.startsWith('$checkout/');
+  }
 
   /// Screens guests cannot open.
   static bool requiresSignIn(String path) {
-    return path == sales ||
+    return path == cart ||
+        path == checkout ||
+        path.startsWith('$checkout/') ||
+        path == checkoutAddressForm ||
+        path == orders ||
+        path.startsWith('$orders/') ||
+        path == sales ||
         path == statistics ||
         path == post ||
         path == verifyPhone ||

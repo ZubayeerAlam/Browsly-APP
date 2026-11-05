@@ -52,6 +52,19 @@ Deno.serve(async (request) => {
     return jsonResponse(401, { code: "NOT_SIGNED_IN" });
   }
 
+  // Checked before anything is removed. The database also refuses the deletion.
+  const { data: hasOpenOrders, error: ordersError } = await admin.rpc(
+    "account_has_open_orders",
+    { p_user_id: user.id },
+  );
+  if (ordersError) {
+    console.error("Could not check orders", ordersError.message);
+    return jsonResponse(500, { code: "DELETE_FAILED" });
+  }
+  if (hasOpenOrders) {
+    return jsonResponse(409, { code: "OPEN_ORDERS" });
+  }
+
   try {
     await removeFolder(admin, AVATAR_BUCKET, user.id);
 

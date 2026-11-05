@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/state/view_state.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../cart/presentation/widgets/cart_icon_button.dart';
 import '../../../catalog/domain/entities/category.dart';
 import '../../../catalog/domain/entities/product.dart';
 import '../../../catalog/presentation/widgets/category_icon.dart';
@@ -35,6 +36,7 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
         actions: [
+          const CartIconButton(),
           if (isSignedIn)
             const _AccountMenu()
           else
@@ -63,6 +65,14 @@ class _AccountMenu extends StatelessWidget {
       tooltip: 'Account',
       onSelected: context.go,
       itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: AppRoutes.orders,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.receipt_long_outlined),
+            title: Text('My Orders'),
+          ),
+        ),
         PopupMenuItem(
           value: AppRoutes.myPosts,
           child: ListTile(

@@ -6,10 +6,14 @@ import 'app/app.dart';
 import 'core/config/app_config.dart';
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/cart/data/datasources/cart_remote_data_source.dart';
+import 'features/cart/data/repositories/cart_repository_impl.dart';
 import 'features/catalog/data/datasources/catalog_remote_data_source.dart';
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
 import 'features/listings/data/datasources/listing_remote_data_source.dart';
 import 'features/listings/data/repositories/listing_repository_impl.dart';
+import 'features/orders/data/datasources/order_remote_data_source.dart';
+import 'features/orders/data/repositories/order_repository_impl.dart';
 import 'features/profile/data/datasources/address_remote_data_source.dart';
 import 'features/profile/data/datasources/profile_remote_data_source.dart';
 import 'features/profile/data/repositories/address_repository_impl.dart';
@@ -55,6 +59,8 @@ Future<void> main() async {
         catalogRepository,
       ),
       listingRepository: ListingRepositoryImpl(ListingRemoteDataSource(client)),
+      cartRepository: CartRepositoryImpl(CartRemoteDataSource(client)),
+      orderRepository: OrderRepositoryImpl(OrderRemoteDataSource(client)),
     ),
   );
 }

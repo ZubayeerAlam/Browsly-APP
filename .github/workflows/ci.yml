@@ -32,6 +32,7 @@ jobs:
       - run: supabase db start
       - run: supabase db reset
       - run: supabase test db
+      - run: bash supabase/scripts/place_order_race.sh
 
   edge-functions:
     runs-on: ubuntu-latest

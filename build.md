@@ -22,7 +22,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Step 1: Accounts (in progress: needs Google, SMS and an Android test)
 - [x] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review (in progress: needs your Gemini key and policy approval)
-- [ ] Step 4: Buying
+- [x] Step 4: Buying
 - [ ] Step 5: Sales and commission
 - [ ] Step 6: Chat and trust
 - [ ] Step 7: Admin panel
@@ -101,20 +101,22 @@ Full details are in [plan.md](plan.md).
 
 ## Step 4: Buying
 
-- [ ] Cart tables and repository
-- [ ] Point cart and order items at variants without breaking turned-off ones (`save_product` turns variants off rather than deleting them)
-- [ ] Cart button on product cards, and cart icon in the Dashboard top bar
-- [ ] Connect the Add to Cart and Buy Now buttons on product details (they say "coming soon" for now)
-- [ ] Seller-grouped cart screen
-- [ ] Buy Now from product details
-- [ ] Order tables, RLS and price snapshots
-- [ ] `place_order`, with race and rollback tests
-- [ ] Checkout screen with friendly error handling
-- [ ] My Orders and order details
-- [ ] Buyer cancellation
-- [ ] Block account deletion while orders are open, and keep order records after deletion
+- [x] Cart table and repository
+- [x] Point cart and order items at variants without breaking turned-off ones (`save_product` turns variants off rather than deleting them)
+- [x] Cart button on product cards, and cart icon in the Dashboard top bar
+- [x] Connect the Add to Cart and Buy Now buttons on product details
+- [x] Seller-grouped cart screen
+- [x] Buy Now from product details
+- [x] Order tables, RLS and price snapshots
+- [x] `place_order`, with race and rollback tests (`supabase/scripts/place_order_race.sh`)
+- [x] Checkout screen with friendly error handling
+- [x] My Orders and order details
+- [x] Buyer cancellation
+- [x] Block account deletion while orders are open, and keep order records after deletion
 
 **Done when:** a buyer can order from two sellers, a race for the last item gives one success and one `OUT_OF_STOCK`, and a double tap creates one order.
+
+**Status:** complete. Verified on the iOS Simulator against the local database, using the test phone login. The Android build succeeds, but these screens haven't been run on Android yet. That test is covered by the open Android task in Step 1.
 
 ## Step 5: Sales and commission
 
@@ -123,8 +125,10 @@ Full details are in [plan.md](plan.md).
 - [ ] Sales tabs, order details and buyer contact information
 - [ ] Buyer status timeline: Pending → Packaging → Out for delivery → Complete
 - [ ] Complete step: cash record, 1% commission ledger entry and rate snapshot
+- [ ] Add to the product's `sold_count` on Complete
 - [ ] Commission screen
 - [ ] Block posting when over the unpaid limit
+- [ ] Decide what happens to unpaid commission when a seller deletes their account
 
 **Done when:** a ৳1,000 item charges exactly ৳10 on Complete with delivery excluded, cancelled and failed orders charge nothing, and sellers see only their own orders.
 
@@ -136,6 +140,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Chat and notification icons in the Dashboard top bar
 - [ ] Report a message
 - [ ] FCM setup, device tokens, `send-push` and notification centre
+- [ ] Tell sellers about new and cancelled orders
 - [ ] Tell sellers the review result, and refresh My Posts when it arrives (today it needs a pull to refresh)
 - [ ] `track_event` and app tracking (view = details opened, click = card tapped)
 - [ ] Nightly rollup and `get_seller_stats`

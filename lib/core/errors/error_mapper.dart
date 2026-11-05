@@ -47,12 +47,23 @@ AppFailure mapErrorToFailure(Object error) {
     StorageException() => const ServerFailure(
       'We could not upload that photo. Please use a JPG or PNG under 5 MB.',
     ),
-    FunctionException() => const ServerFailure(
-      'That did not work. Please try again.',
-    ),
+    FunctionException() => _mapFunctionError(error),
     _ when error.toString().contains('ClientException') =>
       const NetworkFailure(),
     _ => const UnknownFailure(),
+  };
+}
+
+AppFailure _mapFunctionError(FunctionException error) {
+  final details = error.details;
+  final code = details is Map ? details['code'] : null;
+  return switch (code) {
+    'OPEN_ORDERS' => const ServerFailure(
+      'You still have open orders. Please wait until they finish, or cancel '
+      'them, before deleting your account.',
+      code: 'OPEN_ORDERS',
+    ),
+    _ => const ServerFailure('That did not work. Please try again.'),
   };
 }
 

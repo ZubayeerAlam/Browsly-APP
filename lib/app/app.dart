@@ -5,8 +5,11 @@ import 'package:provider/provider.dart';
 import '../core/config/app_config.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
+import '../features/cart/domain/repositories/cart_repository.dart';
+import '../features/cart/presentation/providers/cart_provider.dart';
 import '../features/catalog/domain/repositories/catalog_repository.dart';
 import '../features/listings/domain/repositories/listing_repository.dart';
+import '../features/orders/domain/repositories/order_repository.dart';
 import '../features/profile/domain/repositories/address_repository.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
 import '../features/profile/presentation/providers/profile_provider.dart';
@@ -26,6 +29,8 @@ class BrowslyApp extends StatefulWidget {
     required this.wishlistRepository,
     required this.shopRepository,
     required this.listingRepository,
+    required this.cartRepository,
+    required this.orderRepository,
     this.theme,
     super.key,
   });
@@ -38,6 +43,8 @@ class BrowslyApp extends StatefulWidget {
   final WishlistRepository wishlistRepository;
   final ShopRepository shopRepository;
   final ListingRepository listingRepository;
+  final CartRepository cartRepository;
+  final OrderRepository orderRepository;
 
   /// Lets tests supply a theme that doesn't download a font.
   final ThemeData? theme;
@@ -50,6 +57,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
   late final AuthProvider _authProvider;
   late final ProfileProvider _profileProvider;
   late final WishlistProvider _wishlistProvider;
+  late final CartProvider _cartProvider;
   late final GoRouter _router;
 
   @override
@@ -61,12 +69,14 @@ class _BrowslyAppState extends State<BrowslyApp> {
       widget.wishlistRepository,
       _authProvider,
     );
+    _cartProvider = CartProvider(widget.cartRepository, _authProvider);
     _router = createAppRouter(_authProvider);
   }
 
   @override
   void dispose() {
     _router.dispose();
+    _cartProvider.dispose();
     _wishlistProvider.dispose();
     _profileProvider.dispose();
     _authProvider.dispose();
@@ -84,7 +94,10 @@ class _BrowslyAppState extends State<BrowslyApp> {
         Provider<WishlistRepository>.value(value: widget.wishlistRepository),
         Provider<ShopRepository>.value(value: widget.shopRepository),
         Provider<ListingRepository>.value(value: widget.listingRepository),
+        Provider<CartRepository>.value(value: widget.cartRepository),
+        Provider<OrderRepository>.value(value: widget.orderRepository),
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
+        ChangeNotifierProvider<CartProvider>.value(value: _cartProvider),
         ChangeNotifierProvider<ProfileProvider>.value(value: _profileProvider),
         ChangeNotifierProvider<WishlistProvider>.value(
           value: _wishlistProvider,

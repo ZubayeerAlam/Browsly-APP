@@ -10,6 +10,8 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/phone_auth_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/cart/domain/repositories/cart_repository.dart';
+import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/catalog/domain/entities/product_filters.dart';
 import '../../features/catalog/domain/repositories/catalog_repository.dart';
 import '../../features/catalog/presentation/providers/product_detail_provider.dart';
@@ -26,6 +28,13 @@ import '../../features/listings/presentation/providers/my_listings_provider.dart
 import '../../features/listings/presentation/providers/product_form_provider.dart';
 import '../../features/listings/presentation/screens/my_posts_screen.dart';
 import '../../features/listings/presentation/screens/post_screen.dart';
+import '../../features/orders/domain/repositories/order_repository.dart';
+import '../../features/orders/presentation/providers/checkout_provider.dart';
+import '../../features/orders/presentation/providers/my_orders_provider.dart';
+import '../../features/orders/presentation/providers/order_detail_provider.dart';
+import '../../features/orders/presentation/screens/checkout_screen.dart';
+import '../../features/orders/presentation/screens/my_orders_screen.dart';
+import '../../features/orders/presentation/screens/order_detail_screen.dart';
 import '../../features/profile/domain/entities/address.dart';
 import '../../features/profile/domain/repositories/address_repository.dart';
 import '../../features/profile/presentation/providers/address_form_provider.dart';
@@ -196,6 +205,53 @@ GoRouter createAppRouter(AuthProvider auth) {
           child: const WishlistScreen(),
         ),
       ),
+      GoRoute(
+        path: AppRoutes.cart,
+        builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.checkout,
+        builder: (context, state) => _checkout(null),
+        routes: [
+          GoRoute(
+            path: ':variantId',
+            builder: (context, state) =>
+                _checkout(state.pathParameters['variantId']),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.checkoutAddressForm,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              AddressFormProvider(context.read<AddressRepository>())
+                ..loadRegions(),
+          child: const AddressFormScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.orders,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              MyOrdersProvider(context.read<OrderRepository>())..load(),
+          child: const MyOrdersScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.orders}/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ChangeNotifierProvider(
+            key: ValueKey(id),
+            create: (context) =>
+                OrderDetailProvider(context.read<OrderRepository>(), id)
+                  ..load(),
+            child: OrderDetailScreen(
+              justPlaced: state.uri.queryParameters['placed'] == '1',
+            ),
+          );
+        },
+      ),
       _authRoute(
         AppRoutes.login,
         (state) => LoginScreen(from: state.uri.queryParameters['from']),
@@ -266,6 +322,19 @@ StatefulShellBranch _tab(String path, Widget screen) {
   );
 }
 
+Widget _checkout(String? buyNowVariantId) {
+  return ChangeNotifierProvider(
+    key: ValueKey(buyNowVariantId),
+    create: (context) => CheckoutProvider(
+      context.read<CartRepository>(),
+      context.read<OrderRepository>(),
+      context.read<AddressRepository>(),
+      buyNowVariantId: buyNowVariantId,
+    )..load(),
+    child: const CheckoutScreen(),
+  );
+}
+
 String? _safeFrom(String? from) => _isInternalPath(from) ? from : null;
 
 /// A screen with its own busy and error state for sign-in actions.
@@ -311,7 +380,7 @@ String? resolveRedirect({
   if (path == AppRoutes.verifyPhone && isPhoneVerified) {
     return _isInternalPath(from) ? from : AppRoutes.dashboard;
   }
-  if (AppRoutes.phoneVerifiedOnly.contains(path) && !isPhoneVerified) {
+  if (AppRoutes.requiresVerifiedPhone(path) && !isPhoneVerified) {
     return AppRoutes.withFrom(AppRoutes.verifyPhone, path);
   }
   return null;

@@ -7,6 +7,8 @@ import 'package:browsly_app/core/config/app_config.dart';
 import 'package:browsly_app/core/errors/app_failure.dart';
 import 'package:browsly_app/features/auth/domain/entities/auth_user.dart';
 import 'package:browsly_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:browsly_app/features/cart/domain/entities/cart.dart';
+import 'package:browsly_app/features/cart/domain/repositories/cart_repository.dart';
 import 'package:browsly_app/features/catalog/domain/entities/category.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product_filters.dart';
@@ -14,6 +16,8 @@ import 'package:browsly_app/features/catalog/domain/entities/shop.dart';
 import 'package:browsly_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:browsly_app/features/listings/domain/entities/listing.dart';
 import 'package:browsly_app/features/listings/domain/repositories/listing_repository.dart';
+import 'package:browsly_app/features/orders/domain/entities/order.dart';
+import 'package:browsly_app/features/orders/domain/repositories/order_repository.dart';
 import 'package:browsly_app/features/profile/domain/entities/address.dart';
 import 'package:browsly_app/features/profile/domain/entities/profile.dart';
 import 'package:browsly_app/features/profile/domain/entities/region.dart';
@@ -541,6 +545,211 @@ class FakeListingRepository implements ListingRepository {
   }
 }
 
+/// One line of a test cart.
+CartLine testCartLine(
+  String id, {
+  String title = 'Test Lamp',
+  double price = 1000,
+  int quantity = 1,
+  int stock = 5,
+  CartProblem? problem,
+}) {
+  return CartLine(
+    variantId: id,
+    productId: 'product-$id',
+    title: title,
+    unitPrice: price,
+    quantity: quantity,
+    stock: stock,
+    problem: problem,
+  );
+}
+
+/// One shop's worth of lines, with totals worked out like the server does.
+Cart testCart(List<CartLine> lines, {double deliveryFee = 60}) {
+  if (lines.isEmpty) return Cart.empty;
+  final buyable = lines.where((line) => line.problem == null);
+  final subtotal = buyable.fold<double>(0, (sum, l) => sum + l.lineTotal);
+  final delivery = buyable.isEmpty ? 0.0 : deliveryFee;
+  return Cart(
+    shops: [
+      CartShop(
+        id: 'shop-1',
+        name: 'Test Shop',
+        deliveryFee: deliveryFee,
+        subtotal: subtotal,
+        lines: lines,
+      ),
+    ],
+    subtotal: subtotal,
+    deliveryTotal: delivery,
+    grandTotal: subtotal + delivery,
+    itemCount: lines.fold(0, (sum, line) => sum + line.quantity),
+    canCheckout: lines.every((line) => line.problem == null),
+  );
+}
+
+class FakeCartRepository implements CartRepository {
+  List<CartLine> lines = [];
+  AppFailure? failWith;
+  Cart? buyNowCart;
+  final List<String> calls = [];
+
+  /// When set, writes wait for this, to test what shows while one is on its way.
+  Future<void>? writeGate;
+
+  Cart get _cart => testCart(lines);
+
+  Future<void> _write(String call) async {
+    calls.add(call);
+    if (writeGate != null) await writeGate;
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<Cart> getCart() async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return _cart;
+  }
+
+  @override
+  Future<Cart> getBuyNow(String variantId) async {
+    calls.add('getBuyNow:$variantId');
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return buyNowCart ?? testCart([testCartLine(variantId)]);
+  }
+
+  @override
+  Future<Cart> addVariant(String variantId) async {
+    await _write('addVariant:$variantId');
+    lines = [...lines, testCartLine(variantId)];
+    return _cart;
+  }
+
+  @override
+  Future<Cart> addProduct(String productId) async {
+    await _write('addProduct:$productId');
+    lines = [...lines, testCartLine('variant-of-$productId')];
+    return _cart;
+  }
+
+  @override
+  Future<Cart> setQuantity(String variantId, int quantity) async {
+    await _write('setQuantity:$variantId:$quantity');
+    lines = [
+      for (final line in lines)
+        if (line.variantId != variantId)
+          line
+        else if (quantity > 0)
+          testCartLine(
+            variantId,
+            title: line.title,
+            price: line.unitPrice,
+            quantity: quantity,
+            stock: line.stock,
+          ),
+    ];
+    return _cart;
+  }
+}
+
+OrderDetail testOrder({
+  String id = 'order-1',
+  OrderStatus status = OrderStatus.pending,
+}) {
+  return OrderDetail(
+    id: id,
+    orderNumber: 'BR-100001',
+    subtotal: 1000,
+    deliveryTotal: 60,
+    grandTotal: 1060,
+    createdAt: DateTime(2026, 11, 5),
+    shippingAddress: const ShippingAddress(
+      recipientName: 'Test Person',
+      phone: '+8801700000000',
+      line1: 'House 1',
+      region: 'Gazipur, Dhaka',
+    ),
+    groups: [
+      OrderGroup(
+        id: 'group-1',
+        shopId: 'shop-1',
+        shopName: 'Test Shop',
+        status: status,
+        subtotal: 1000,
+        deliveryFee: 60,
+        items: const [
+          OrderItem(
+            id: 'item-1',
+            title: 'Test Lamp',
+            unitPrice: 1000,
+            quantity: 1,
+            lineTotal: 1000,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+class FakeOrderRepository implements OrderRepository {
+  OrderDetail? order;
+  List<OrderSummary> summaries = [];
+  AppFailure? failWith;
+  AppFailure? cancelFailure;
+  final List<String> placeKeys = [];
+  String? lastAddressId;
+  double? lastExpectedTotal;
+  String? lastBuyNowVariantId;
+  String? lastCancelledGroupId;
+
+  /// Runs when an order is placed, as the server emptying the cart.
+  void Function()? onPlaced;
+
+  @override
+  Future<PlacedOrder> placeOrder({
+    required String addressId,
+    required String idempotencyKey,
+    required double expectedTotal,
+    String? buyNowVariantId,
+  }) async {
+    placeKeys.add(idempotencyKey);
+    lastAddressId = addressId;
+    lastExpectedTotal = expectedTotal;
+    lastBuyNowVariantId = buyNowVariantId;
+    final failure = failWith;
+    if (failure != null) throw failure;
+    onPlaced?.call();
+    order ??= testOrder();
+    return PlacedOrder(id: order!.id, orderNumber: order!.orderNumber);
+  }
+
+  @override
+  Future<OrderPage> getMyOrders({OrderCursor? cursor, int limit = 20}) async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return OrderPage(items: summaries);
+  }
+
+  @override
+  Future<OrderDetail?> getOrder(String id) async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return order;
+  }
+
+  @override
+  Future<void> cancelGroup(String groupId) async {
+    lastCancelledGroupId = groupId;
+    final failure = cancelFailure;
+    if (failure != null) throw failure;
+    order = testOrder(status: OrderStatus.cancelled);
+  }
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   required AuthRepository auth,
@@ -550,6 +759,8 @@ Future<void> pumpApp(
   WishlistRepository? wishlist,
   ShopRepository? shops,
   ListingRepository? listings,
+  CartRepository? cart,
+  OrderRepository? orders,
 }) async {
   await tester.pumpWidget(
     BrowslyApp(
@@ -564,6 +775,8 @@ Future<void> pumpApp(
       wishlistRepository: wishlist ?? FakeWishlistRepository(),
       shopRepository: shops ?? FakeShopRepository(),
       listingRepository: listings ?? FakeListingRepository(),
+      cartRepository: cart ?? FakeCartRepository(),
+      orderRepository: orders ?? FakeOrderRepository(),
       theme: AppTheme.light(baseTextTheme: ThemeData().textTheme),
     ),
   );

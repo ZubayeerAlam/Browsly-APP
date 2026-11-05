@@ -10,6 +10,11 @@ String formatTaka(num amount) {
   ).format(amount);
 }
 
+/// Shows a date such as `5 Nov 2026`.
+String formatDate(DateTime date) {
+  return DateFormat('d MMM y', 'en_US').format(date);
+}
+
 /// Shortens large counts for statistics, such as `12.5K`.
 String formatCompactCount(num count) {
   return NumberFormat.compact(locale: 'en_US').format(count);

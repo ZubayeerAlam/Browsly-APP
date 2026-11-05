@@ -11,6 +11,9 @@ import '../../../../core/widgets/app_back_button.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/pill_chip.dart';
 import '../../../../core/widgets/state_views.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../cart/presentation/widgets/add_to_cart.dart';
+import '../../../cart/presentation/widgets/cart_icon_button.dart';
 import '../../../wishlist/presentation/widgets/wishlist_button.dart';
 import '../../domain/entities/product.dart';
 import '../providers/product_detail_provider.dart';
@@ -38,6 +41,7 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             WishlistButton(productId: product.id),
           ],
+          const CartIconButton(),
           const SizedBox(width: 8),
         ],
       ),
@@ -59,7 +63,7 @@ class ProductDetailScreen extends StatelessWidget {
       },
       bottomNavigationBar: product == null
           ? null
-          : _BuyBar(isInStock: provider.selected?.isInStock ?? false),
+          : _BuyBar(variant: provider.selected),
     );
   }
 
@@ -392,12 +396,25 @@ class _ShopCard extends StatelessWidget {
 }
 
 class _BuyBar extends StatelessWidget {
-  const _BuyBar({required this.isInStock});
+  const _BuyBar({required this.variant});
 
-  final bool isInStock;
+  final ProductVariant? variant;
+
+  Future<void> _addToCart(BuildContext context, ProductVariant variant) async {
+    if (sendGuestToSignIn(context)) return;
+    final failure = await context.read<CartProvider>().addVariant(variant.id);
+    if (context.mounted) showCartResult(context, failure);
+  }
+
+  void _buyNow(BuildContext context, ProductVariant variant) {
+    if (sendGuestToSignIn(context)) return;
+    context.go(AppRoutes.buyNow(variant.id));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final variant = this.variant;
+    final isInStock = variant?.isInStock ?? false;
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -411,7 +428,7 @@ class _BuyBar extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: isInStock
-                      ? () => _showComingSoon(context, 'The cart')
+                      ? () => _addToCart(context, variant!)
                       : null,
                   child: const Text('Add to Cart'),
                 ),
@@ -420,7 +437,7 @@ class _BuyBar extends StatelessWidget {
               Expanded(
                 child: FilledButton(
                   onPressed: isInStock
-                      ? () => _showComingSoon(context, 'Buy Now')
+                      ? () => _buyNow(context, variant!)
                       : null,
                   child: const Text('Buy Now'),
                 ),

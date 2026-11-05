@@ -239,8 +239,7 @@ erDiagram
     profiles ||--o| seller_profiles : "may become"
     seller_profiles ||--|| shops : owns
     profiles ||--o{ addresses : has
-    profiles ||--|| carts : has
-    carts ||--o{ cart_items : contains
+    profiles ||--o{ cart_items : has
     profiles ||--o{ wishlist_items : saves
     countries ||--o{ regions : contains
     regions ||--o{ addresses : locates
@@ -309,8 +308,7 @@ Every product has at least one variant, so a simple product just has one default
 
 | Table | Key columns and rules |
 |---|---|
-| `carts` | user_id unique |
-| `cart_items` | cart_id, variant_id, `quantity > 0`; unique (cart_id, variant_id). Stores no price |
+| `cart_items` | PK (user_id, variant_id), `quantity` 1–99. Stores no price |
 | `wishlist_items` | PK (user_id, product_id) |
 
 **Orders and money**
@@ -362,7 +360,7 @@ The shipping address is stored on each seller group, and sellers cannot read `or
 | Active products, images, variants; active shops; categories; visible reviews | Read | | Own products: read all statuses | All |
 | products, images, variants | | | Insert and edit own, but **not** status or calculated fields | All, through RPCs |
 | profiles (private fields) | Public shop view only | Read, limited update | | Read, manage status |
-| addresses, carts, wishlist, notifications, device tokens | | Own only | | Limited to support needs |
+| addresses, cart, wishlist, notifications, device tokens | | Own only | | Limited to support needs |
 | orders | | Buyer reads own | No access | Read |
 | seller_order_groups, order_items, payments | | Buyer reads own | Reads own shop's; changes only through RPCs | Read |
 | commission_ledger, settlements | | | Reads own | Reads and records |

@@ -5,6 +5,7 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../cart/presentation/widgets/add_to_cart.dart';
 import '../../../wishlist/presentation/widgets/wishlist_button.dart';
 import '../../domain/entities/product.dart';
 import 'rating_label.dart';
@@ -66,31 +67,44 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                         const Spacer(),
-                        Wrap(
-                          spacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              formatTaka(product.price),
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
+                        // Leaves room for the cart button in the corner.
+                        Padding(
+                          padding: EdgeInsets.only(
+                            right: product.isInStock ? 36 : 0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 6,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    formatTaka(product.price),
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  if (discount != null)
+                                    Text(
+                                      formatTaka(product.compareAtPrice!),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: AppColors.textSecondary,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                          ),
+                                    ),
+                                ],
                               ),
-                            ),
-                            if (discount != null)
-                              Text(
-                                formatTaka(product.compareAtPrice!),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondary,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
+                              const SizedBox(height: 2),
+                              RatingLabel(
+                                average: product.ratingAvg,
+                                count: product.ratingCount,
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        RatingLabel(
-                          average: product.ratingAvg,
-                          count: product.ratingCount,
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -104,6 +118,12 @@ class ProductCard extends StatelessWidget {
             top: 4,
             child: WishlistButton(productId: product.id, filled: true),
           ),
+          if (product.isInStock)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: CardCartButton(productId: product.id),
+            ),
         ],
       ),
     );
