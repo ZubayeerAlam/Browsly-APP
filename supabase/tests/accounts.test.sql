@@ -182,7 +182,7 @@ delete from public.addresses;
 reset role;
 
 select is(
-  (select count(*)::int from public.addresses),
+  (select count(*)::int from public.addresses where user_id = '00000000-0000-0000-0000-00000000000a'),
   1,
   'Users cannot delete another user''s addresses'
 );
@@ -197,7 +197,7 @@ select is(
 delete from auth.users where id = '00000000-0000-0000-0000-00000000000a';
 
 select is(
-  (select count(*)::int from public.addresses),
+  (select count(*)::int from public.addresses where user_id = '00000000-0000-0000-0000-00000000000a'),
   0,
   'Deleting an account removes its addresses'
 );

@@ -18,6 +18,9 @@ String sellingFailureMessage(AppFailure failure) {
     'PRODUCT_NOT_FOUND' => 'This listing is no longer available.',
     'PRODUCT_NOT_SUBMITTABLE' => 'This listing has already been submitted.',
     'PRODUCT_NOT_PAUSABLE' => 'Only live listings can be paused.',
+    'COMMISSION_LIMIT' =>
+      'You owe too much commission to post right now. Please pay it first. '
+          'You can see the amount under Sales, then Commission.',
     'SUBMISSION_LIMIT' =>
       'You have reached today\'s limit for reviews. Please try again tomorrow.',
     _ => failure.message,

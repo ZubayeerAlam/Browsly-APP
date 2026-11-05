@@ -23,6 +23,8 @@ import 'package:browsly_app/features/profile/domain/entities/profile.dart';
 import 'package:browsly_app/features/profile/domain/entities/region.dart';
 import 'package:browsly_app/features/profile/domain/repositories/address_repository.dart';
 import 'package:browsly_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:browsly_app/features/sales/domain/entities/sale.dart';
+import 'package:browsly_app/features/sales/domain/repositories/sales_repository.dart';
 import 'package:browsly_app/features/shop/domain/repositories/shop_repository.dart';
 import 'package:browsly_app/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:flutter/material.dart';
@@ -750,6 +752,148 @@ class FakeOrderRepository implements OrderRepository {
   }
 }
 
+SaleSummary testSale({
+  String id = 'sale-1',
+  OrderStatus status = OrderStatus.pending,
+}) {
+  return SaleSummary(
+    id: id,
+    orderNumber: 'BR-100001',
+    status: status,
+    amountToCollect: 1060,
+    createdAt: DateTime(2026, 11, 5),
+    recipientName: 'Test Person',
+    itemCount: 1,
+    firstTitle: 'Test Lamp',
+  );
+}
+
+SaleDetail testSaleDetail({
+  String id = 'sale-1',
+  OrderStatus status = OrderStatus.pending,
+}) {
+  return SaleDetail(
+    id: id,
+    orderNumber: 'BR-100001',
+    status: status,
+    subtotal: 1000,
+    deliveryFee: 60,
+    commissionTotal: 10,
+    createdAt: DateTime(2026, 11, 5),
+    buyer: const ShippingAddress(
+      recipientName: 'Test Person',
+      phone: '+8801700000000',
+      line1: 'House 1',
+      region: 'Gazipur, Dhaka',
+    ),
+    items: const [
+      OrderItem(
+        id: 'item-1',
+        title: 'Test Lamp',
+        unitPrice: 1000,
+        quantity: 1,
+        lineTotal: 1000,
+      ),
+    ],
+    history: [
+      OrderStatusEvent(
+        status: OrderStatus.pending,
+        createdAt: DateTime(2026, 11, 5, 10),
+      ),
+    ],
+  );
+}
+
+class FakeSalesRepository implements SalesRepository {
+  /// Everything the server has, which the tabs filter by status.
+  List<SaleSummary> sales = [];
+  SaleDetail? sale;
+  CommissionSummary summary = const CommissionSummary(
+    balance: 0,
+    totalCharged: 0,
+    totalPaid: 0,
+    commissionRate: 1,
+    blockLimit: 5000,
+    isBlocked: false,
+  );
+  List<CommissionEntry> entries = [];
+  AppFailure? failWith;
+  AppFailure? actionFailure;
+  final List<String> calls = [];
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  static bool _inTab(OrderStatus status, SaleTab tab) {
+    return switch (tab) {
+      SaleTab.pending => status == OrderStatus.pending,
+      SaleTab.packaging => status == OrderStatus.packaging,
+      SaleTab.outForDelivery => status == OrderStatus.outForDelivery,
+      SaleTab.completed => status == OrderStatus.completed,
+      SaleTab.closed => status.isClosedWithoutPayment,
+    };
+  }
+
+  @override
+  Future<SalePage> getSales(
+    SaleTab tab, {
+    PageCursor? cursor,
+    int limit = 20,
+  }) async {
+    _maybeFail();
+    return SalePage(
+      items: sales.where((sale) => _inTab(sale.status, tab)).toList(),
+    );
+  }
+
+  @override
+  Future<SaleDetail?> getSale(String id) async {
+    _maybeFail();
+    return sale;
+  }
+
+  void _moveTo(String id, OrderStatus status) {
+    sale = testSaleDetail(id: id, status: status);
+    sales = [
+      for (final item in sales)
+        item.id == id ? testSale(id: id, status: status) : item,
+    ];
+  }
+
+  @override
+  Future<void> setStatus(String id, OrderStatus status, {String? note}) async {
+    calls.add('setStatus:$id:${status.name}:$note');
+    final failure = actionFailure;
+    if (failure != null) throw failure;
+    _moveTo(id, status);
+  }
+
+  @override
+  Future<void> cancel(String id, {String? reason}) async {
+    calls.add('cancel:$id:$reason');
+    final failure = actionFailure;
+    if (failure != null) throw failure;
+    _moveTo(id, OrderStatus.cancelled);
+  }
+
+  @override
+  Future<CommissionSummary> getCommissionSummary() async {
+    _maybeFail();
+    return summary;
+  }
+
+  @override
+  Future<CommissionPage> getCommissionEntries({
+    PageCursor? cursor,
+    int limit = 20,
+  }) async {
+    _maybeFail();
+    return CommissionPage(items: entries);
+  }
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   required AuthRepository auth,
@@ -761,6 +905,7 @@ Future<void> pumpApp(
   ListingRepository? listings,
   CartRepository? cart,
   OrderRepository? orders,
+  SalesRepository? sales,
 }) async {
   await tester.pumpWidget(
     BrowslyApp(
@@ -777,6 +922,7 @@ Future<void> pumpApp(
       listingRepository: listings ?? FakeListingRepository(),
       cartRepository: cart ?? FakeCartRepository(),
       orderRepository: orders ?? FakeOrderRepository(),
+      salesRepository: sales ?? FakeSalesRepository(),
       theme: AppTheme.light(baseTextTheme: ThemeData().textTheme),
     ),
   );

@@ -18,6 +18,8 @@ import 'features/profile/data/datasources/address_remote_data_source.dart';
 import 'features/profile/data/datasources/profile_remote_data_source.dart';
 import 'features/profile/data/repositories/address_repository_impl.dart';
 import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/sales/data/datasources/sales_remote_data_source.dart';
+import 'features/sales/data/repositories/sales_repository_impl.dart';
 import 'features/shop/data/datasources/shop_remote_data_source.dart';
 import 'features/shop/data/repositories/shop_repository_impl.dart';
 import 'features/wishlist/data/datasources/wishlist_remote_data_source.dart';
@@ -61,6 +63,7 @@ Future<void> main() async {
       listingRepository: ListingRepositoryImpl(ListingRemoteDataSource(client)),
       cartRepository: CartRepositoryImpl(CartRemoteDataSource(client)),
       orderRepository: OrderRepositoryImpl(OrderRemoteDataSource(client)),
+      salesRepository: SalesRepositoryImpl(SalesRemoteDataSource(client)),
     ),
   );
 }

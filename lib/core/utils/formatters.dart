@@ -15,6 +15,11 @@ String formatDate(DateTime date) {
   return DateFormat('d MMM y', 'en_US').format(date);
 }
 
+/// Shows a date and time such as `5 Nov, 2:30 PM`.
+String formatDateTime(DateTime date) {
+  return DateFormat('d MMM, h:mm a', 'en_US').format(date);
+}
+
 /// Shortens large counts for statistics, such as `12.5K`.
 String formatCompactCount(num count) {
   return NumberFormat.compact(locale: 'en_US').format(count);

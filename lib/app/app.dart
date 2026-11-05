@@ -12,6 +12,7 @@ import '../features/catalog/domain/repositories/catalog_repository.dart';
 import '../features/listings/domain/repositories/listing_repository.dart';
 import '../features/orders/domain/repositories/order_repository.dart';
 import '../features/profile/domain/repositories/address_repository.dart';
+import '../features/sales/domain/repositories/sales_repository.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
 import '../features/profile/presentation/providers/profile_provider.dart';
 import '../features/shop/domain/repositories/shop_repository.dart';
@@ -33,6 +34,7 @@ class BrowslyApp extends StatefulWidget {
     required this.listingRepository,
     required this.cartRepository,
     required this.orderRepository,
+    required this.salesRepository,
     this.theme,
     super.key,
   });
@@ -47,6 +49,7 @@ class BrowslyApp extends StatefulWidget {
   final ListingRepository listingRepository;
   final CartRepository cartRepository;
   final OrderRepository orderRepository;
+  final SalesRepository salesRepository;
 
   /// Lets tests supply a theme that doesn't download a font.
   final ThemeData? theme;
@@ -100,6 +103,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
         Provider<ListingRepository>.value(value: widget.listingRepository),
         Provider<CartRepository>.value(value: widget.cartRepository),
         Provider<OrderRepository>.value(value: widget.orderRepository),
+        Provider<SalesRepository>.value(value: widget.salesRepository),
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider<CartProvider>.value(value: _cartProvider),
         ChangeNotifierProvider<ProfileProvider>.value(value: _profileProvider),

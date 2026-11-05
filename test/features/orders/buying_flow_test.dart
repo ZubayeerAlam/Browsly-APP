@@ -3,6 +3,7 @@ import 'package:browsly_app/core/widgets/app_network_image.dart';
 import 'package:browsly_app/features/cart/domain/entities/cart.dart';
 import 'package:browsly_app/features/orders/data/models/order_models.dart';
 import 'package:browsly_app/features/orders/domain/entities/order.dart';
+import 'package:browsly_app/features/orders/presentation/widgets/order_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +29,11 @@ void main() {
   });
 
   tearDown(() => AppNetworkImage.debugBuilder = null);
+
+  Finder chip(String label) => find.descendant(
+    of: find.byType(OrderStatusChip),
+    matching: find.text(label),
+  );
 
   Future<void> pump(WidgetTester tester, {bool verified = true}) async {
     tester.view.physicalSize = const Size(1200, 2600);
@@ -294,7 +300,7 @@ void main() {
     await pump(tester);
     await goTo(tester, '/orders/order-1');
 
-    expect(find.text('Pending'), findsOneWidget);
+    expect(chip('Pending'), findsOneWidget);
     await tester.tap(find.text('Cancel order'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Keep order'));
@@ -307,7 +313,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(orders.lastCancelledGroupId, 'group-1');
-    expect(find.text('Cancelled'), findsOneWidget);
+    expect(chip('Cancelled'), findsOneWidget);
     expect(find.text('Cancel order'), findsNothing);
     expect(find.text('To pay after cancellations'), findsOneWidget);
   });
@@ -317,7 +323,7 @@ void main() {
     await pump(tester);
     await goTo(tester, '/orders/order-1');
 
-    expect(find.text('Out for delivery'), findsOneWidget);
+    expect(chip('Out for delivery'), findsOneWidget);
     expect(find.text('Cancel order'), findsNothing);
   });
 

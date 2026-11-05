@@ -14,10 +14,14 @@ abstract final class AppRoutes {
   static const checkout = '/checkout';
   static const checkoutAddressForm = '/checkout-address';
   static const orders = '/orders';
+  static const commission = '/commission';
 
   /// Checkout for one of this item, leaving the cart as it is.
   static String buyNow(String variantId) => '$checkout/$variantId';
   static String order(String id) => '$orders/$id';
+
+  /// One seller's part of an order. Under Sales for the seller.
+  static String sale(String id) => '/sale/$id';
 
   /// An order straight after checkout, with the success message.
   static String placedOrder(String id) =>
@@ -69,6 +73,8 @@ abstract final class AppRoutes {
         path == checkoutAddressForm ||
         path == orders ||
         path.startsWith('$orders/') ||
+        path == commission ||
+        path.startsWith('/sale/') ||
         path == sales ||
         path == statistics ||
         path == post ||
@@ -88,6 +94,7 @@ abstract final class AppRoutes {
     if (path == checkout) return cart;
     if (path.startsWith('$checkout/')) return products;
     if (path.startsWith('$orders/')) return orders;
+    if (path == commission || path.startsWith('/sale/')) return sales;
     if (path == post) {
       final from = location.queryParameters['from'];
       if (from != null && from.startsWith('/') && !from.startsWith('//')) {

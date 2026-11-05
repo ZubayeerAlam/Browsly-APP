@@ -18,6 +18,21 @@ enum OrderStatus {
       this == cancelled || this == deliveryFailed;
 }
 
+/// One step an order has been through.
+class OrderStatusEvent {
+  const OrderStatusEvent({
+    required this.status,
+    required this.createdAt,
+    this.note,
+  });
+
+  final OrderStatus status;
+  final DateTime createdAt;
+
+  /// Such as why the seller cancelled.
+  final String? note;
+}
+
 /// Answers from `place_order`, and the same order when a request is retried.
 class PlacedOrder {
   const PlacedOrder({required this.id, required this.orderNumber});
@@ -110,6 +125,7 @@ class OrderGroup {
     required this.subtotal,
     required this.deliveryFee,
     required this.items,
+    this.history = const [],
     this.shopId,
   });
 
@@ -122,6 +138,7 @@ class OrderGroup {
   final double subtotal;
   final double deliveryFee;
   final List<OrderItem> items;
+  final List<OrderStatusEvent> history;
 }
 
 /// A copy from when the order was placed, so later edits don't change it.

@@ -18,6 +18,9 @@ String buyingFailureMessage(AppFailure failure) {
     'PHONE_NOT_VERIFIED' => 'Please verify your phone number first.',
     'ADDRESS_NOT_FOUND' => 'Please choose another delivery address.',
     'ACCOUNT_SUSPENDED' => 'Your account is suspended. Please contact support.',
+    'NOT_A_SELLER' => 'Your shop is not able to do this right now.',
+    'INVALID_STATUS_CHANGE' =>
+      'This order has already moved on. Please check its status.',
     'ORDER_NOT_FOUND' => 'We could not find this order.',
     'ORDER_NOT_CANCELLABLE' =>
       'This order can no longer be cancelled, because it is on its way.',

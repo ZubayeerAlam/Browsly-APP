@@ -44,6 +44,12 @@ import '../../features/profile/presentation/screens/address_form_screen.dart';
 import '../../features/profile/presentation/screens/addresses_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/sales/domain/repositories/sales_repository.dart';
+import '../../features/sales/presentation/providers/commission_provider.dart';
+import '../../features/sales/presentation/providers/sale_detail_provider.dart';
+import '../../features/sales/presentation/providers/sales_provider.dart';
+import '../../features/sales/presentation/screens/commission_screen.dart';
+import '../../features/sales/presentation/screens/sale_detail_screen.dart';
 import '../../features/sales/presentation/screens/sales_screen.dart';
 import '../../features/shop/domain/repositories/shop_repository.dart';
 import '../../features/shop/presentation/providers/shop_form_provider.dart';
@@ -111,7 +117,18 @@ GoRouter createAppRouter(AuthProvider auth) {
               ),
             ],
           ),
-          _tab(AppRoutes.sales, const SalesScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.sales,
+                builder: (context, state) => ChangeNotifierProvider(
+                  create: (context) =>
+                      SalesProvider(context.read<SalesRepository>())..load(),
+                  child: const SalesScreen(),
+                ),
+              ),
+            ],
+          ),
           _tab(AppRoutes.statistics, const StatisticsScreen()),
         ],
       ),
@@ -227,6 +244,26 @@ GoRouter createAppRouter(AuthProvider auth) {
               AddressFormProvider(context.read<AddressRepository>())
                 ..loadRegions(),
           child: const AddressFormScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/sale/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ChangeNotifierProvider(
+            key: ValueKey(id),
+            create: (context) =>
+                SaleDetailProvider(context.read<SalesRepository>(), id)..load(),
+            child: const SaleDetailScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.commission,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              CommissionProvider(context.read<SalesRepository>())..load(),
+          child: const CommissionScreen(),
         ),
       ),
       GoRoute(

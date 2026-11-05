@@ -23,7 +23,7 @@ Full details are in [plan.md](plan.md).
 - [x] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review (in progress: needs your Gemini key and policy approval)
 - [x] Step 4: Buying
-- [ ] Step 5: Sales and commission
+- [x] Step 5: Sales and commission
 - [ ] Step 6: Chat and trust
 - [ ] Step 7: Admin panel
 - [ ] Step 8: Launch prep
@@ -59,7 +59,7 @@ Full details are in [plan.md](plan.md).
 - [x] Profile and avatar (photo location data is removed before upload)
 - [x] Addresses with Bangladesh regions
 - [x] Account deletion (`delete-account`)
-- [ ] Finish testing this step on a real Android phone. Passed on a moto g96: Google, email and phone sign-in, phone verification, addresses. Still to test: password reset, profile photo, account deletion
+- [ ] Finish testing on a real Android phone, including the Step 3 and Step 5 seller screens. Passed on a moto g96: Google, email and phone sign-in, phone verification, addresses. Still to test: password reset, profile photo, account deletion
 
 **Done when:** all three sign-in methods work on a real device, and users cannot read each other's private data.
 
@@ -120,17 +120,19 @@ Full details are in [plan.md](plan.md).
 
 ## Step 5: Sales and commission
 
-- [ ] `update_group_status`, allowing only valid status changes
-- [ ] Cancel and failed delivery, with stock restored
-- [ ] Sales tabs, order details and buyer contact information
-- [ ] Buyer status timeline: Pending → Packaging → Out for delivery → Complete
-- [ ] Complete step: cash record, 1% commission ledger entry and rate snapshot
-- [ ] Add to the product's `sold_count` on Complete
-- [ ] Commission screen
-- [ ] Block posting when over the unpaid limit
-- [ ] Decide what happens to unpaid commission when a seller deletes their account
+- [x] `update_group_status`, allowing only valid status changes
+- [x] Cancel and failed delivery, with stock restored
+- [x] Sales tabs, order details and buyer contact information
+- [x] Buyer status timeline: Pending → Packaging → Out for delivery → Complete
+- [x] Complete step: cash record, 1% commission ledger entry and rate snapshot
+- [x] Add to the product's `sold_count` on Complete
+- [x] Commission screen
+- [x] Block posting when over the unpaid limit (new listings and submitting drafts; live listings stay on sale)
+- [x] Unpaid commission blocks account deletion until it is paid, and commission records stay afterwards
 
 **Done when:** a ৳1,000 item charges exactly ৳10 on Complete with delivery excluded, cancelled and failed orders charge nothing, and sellers see only their own orders.
+
+**Status:** complete. Verified on the iOS Simulator against the local database, using a test login given a demo shop. The Android build succeeds and is installed on the moto g96, but the seller screens and the Call button haven't been run on it yet. Payments can only be recorded through the server function until the admin screen in Step 7.
 
 ## Step 6: Chat and trust
 
@@ -157,7 +159,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Overview (including queue count), users, products, orders
 - [ ] Suspending a seller also turns off their shop, which hides their products
 - [ ] Categories, settings (commission rate and limits), banners
-- [ ] Reports and settlement recording
+- [ ] Reports, and a settlement screen using `admin_record_settlement`
 - [ ] Audit tests
 
 **Done when:** an admin can decide queued products and record a settlement, and a non-admin is refused by the server.
@@ -170,6 +172,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Set production secrets: `project_url` and `moderation_secret` in the Vault, and `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on the function. Never set `MODERATION_PROVIDER` there
 - [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds
 - [ ] Terms, privacy policy, seller terms and listing policy (legal review)
+- [ ] Put Browsly's real bKash and bank details on the Commission screen
 - [ ] App icons and store listings
 - [ ] Staging → production migration rehearsal and backups. Apply only `seed.sql` to production, never `seed_dev.sql`, and never use `db push --include-seed`
 - [ ] Closed beta with real sellers

@@ -9,7 +9,8 @@ abstract final class OrderModel {
       'seller_order_groups(id, shop_id, shop_name, status, subtotal, '
       'delivery_fee, shipping_address, created_at, '
       'order_items(id, product_id, product_title, variant_name, image_path, '
-      'unit_price, quantity, line_total, created_at))';
+      'unit_price, quantity, line_total, created_at), '
+      'order_status_history(to_status, note, created_at))';
 
   static OrderStatus statusFromJson(String value) {
     return switch (value) {
@@ -19,6 +20,17 @@ abstract final class OrderModel {
       'cancelled' => OrderStatus.cancelled,
       'delivery_failed' => OrderStatus.deliveryFailed,
       _ => OrderStatus.pending,
+    };
+  }
+
+  static String statusToJson(OrderStatus status) {
+    return switch (status) {
+      OrderStatus.pending => 'pending',
+      OrderStatus.packaging => 'packaging',
+      OrderStatus.outForDelivery => 'out_for_delivery',
+      OrderStatus.completed => 'completed',
+      OrderStatus.cancelled => 'cancelled',
+      OrderStatus.deliveryFailed => 'delivery_failed',
     };
   }
 
@@ -93,7 +105,7 @@ abstract final class OrderModel {
       groups: groups,
       shippingAddress: groupRows.isEmpty
           ? null
-          : _address(
+          : addressFromJson(
               groupRows.first['shipping_address'] as Map<String, dynamic>,
             ),
     );
@@ -116,11 +128,27 @@ abstract final class OrderModel {
       status: statusFromJson(json['status'] as String),
       subtotal: (json['subtotal'] as num).toDouble(),
       deliveryFee: (json['delivery_fee'] as num).toDouble(),
-      items: items.map((item) => _item(item, imageUrl)).toList(),
+      items: items.map((item) => itemFromJson(item, imageUrl)).toList(),
+      history:
+          ((json['order_status_history'] as List<dynamic>?) ?? const [])
+              .cast<Map<String, dynamic>>()
+              .map(
+                (event) => OrderStatusEvent(
+                  status: statusFromJson(event['to_status'] as String),
+                  note: event['note'] as String?,
+                  createdAt: DateTime.parse(event['created_at'] as String)
+                      .toLocal(),
+                ),
+              )
+              .toList()
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
     );
   }
 
-  static OrderItem _item(Map<String, dynamic> json, ImageUrlBuilder imageUrl) {
+  static OrderItem itemFromJson(
+    Map<String, dynamic> json,
+    ImageUrlBuilder imageUrl,
+  ) {
     final variantName = json['variant_name'] as String;
     final imagePath = json['image_path'] as String?;
     return OrderItem(
@@ -135,7 +163,7 @@ abstract final class OrderModel {
     );
   }
 
-  static ShippingAddress _address(Map<String, dynamic> json) {
+  static ShippingAddress addressFromJson(Map<String, dynamic> json) {
     return ShippingAddress(
       recipientName: json['recipient_name'] as String,
       phone: json['phone'] as String?,

@@ -63,6 +63,11 @@ AppFailure _mapFunctionError(FunctionException error) {
       'them, before deleting your account.',
       code: 'OPEN_ORDERS',
     ),
+    'OWES_COMMISSION' => const ServerFailure(
+      'You still owe commission to Browsly. Please pay it before deleting '
+      'your account. You can see the amount under Sales, then Commission.',
+      code: 'OWES_COMMISSION',
+    ),
     _ => const ServerFailure('That did not work. Please try again.'),
   };
 }

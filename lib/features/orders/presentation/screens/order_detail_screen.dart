@@ -13,6 +13,7 @@ import '../../../cart/presentation/widgets/order_totals.dart';
 import '../../domain/entities/order.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/order_status_chip.dart';
+import '../widgets/order_timeline.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({this.justPlaced = false, super.key});
@@ -234,6 +235,10 @@ class _GroupCard extends StatelessWidget {
               'Delivery ${formatTaka(group.deliveryFee)}',
               style: theme.textTheme.bodySmall,
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: OrderTimeline(status: group.status, history: group.history),
           ),
           if (group.status.canCancel)
             Padding(

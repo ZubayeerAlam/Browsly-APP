@@ -65,6 +65,18 @@ Deno.serve(async (request) => {
     return jsonResponse(409, { code: "OPEN_ORDERS" });
   }
 
+  const { data: balance, error: balanceError } = await admin.rpc(
+    "seller_commission_balance",
+    { p_seller_id: user.id },
+  );
+  if (balanceError) {
+    console.error("Could not check commission", balanceError.message);
+    return jsonResponse(500, { code: "DELETE_FAILED" });
+  }
+  if (Number(balance) > 0) {
+    return jsonResponse(409, { code: "OWES_COMMISSION" });
+  }
+
   try {
     await removeFolder(admin, AVATAR_BUCKET, user.id);
 
