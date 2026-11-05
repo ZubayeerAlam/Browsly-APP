@@ -14,7 +14,11 @@ class CartIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final count = context.select<CartProvider, int>((cart) => cart.itemCount);
     return IconButton(
-      tooltip: count == 0 ? 'Cart' : 'Cart, $count items',
+      tooltip: switch (count) {
+        0 => 'Cart',
+        1 => 'Cart, 1 item',
+        _ => 'Cart, $count items',
+      },
       icon: Badge.count(
         count: count,
         isLabelVisible: count > 0,

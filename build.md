@@ -19,7 +19,7 @@ Full details are in [plan.md](plan.md).
 
 - [x] Planning: `plan.md` and `build.md` created
 - [x] Step 0: Foundation
-- [ ] Step 1: Accounts (in progress: needs Google, SMS and an Android test)
+- [ ] Step 1: Accounts (in progress: needs real SMS and the rest of the Android test)
 - [x] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review (in progress: needs your Gemini key and policy approval)
 - [x] Step 4: Buying
@@ -52,18 +52,18 @@ Full details are in [plan.md](plan.md).
 
 - [x] `profiles` table, signup trigger, RLS and tests
 - [x] Email sign-in and password reset
-- [ ] Google sign-in (code ready and button hidden; **needs your Google account setup**)
+- [x] Google sign-in (tested on a real Android phone against the local server; still to set up for production)
 - [x] Phone OTP and rate limits (tested with test numbers)
 - [ ] Real Bangladesh SMS provider (**needs your provider account**)
 - [x] Phone verification gate
 - [x] Profile and avatar (photo location data is removed before upload)
 - [x] Addresses with Bangladesh regions
 - [x] Account deletion (`delete-account`)
-- [ ] Test the whole step on a real Android device or emulator
+- [ ] Finish testing this step on a real Android phone. Passed on a moto g96: Google, email and phone sign-in, phone verification, addresses. Still to test: password reset, profile photo, account deletion
 
 **Done when:** all three sign-in methods work on a real device, and users cannot read each other's private data.
 
-**Status:** in progress. Email and phone sign-in work on the iOS Simulator, using test numbers. To finish: real Google sign-in, real SMS and an Android test.
+**Status:** in progress. All three sign-in methods work on a real Android phone against the local server, using test numbers for phone sign-in. Real emails and texts aren't sent locally. To finish: real SMS, and the rest of the Android test.
 
 ## Step 2: Marketplace
 
@@ -116,7 +116,7 @@ Full details are in [plan.md](plan.md).
 
 **Done when:** a buyer can order from two sellers, a race for the last item gives one success and one `OUT_OF_STOCK`, and a double tap creates one order.
 
-**Status:** complete. Verified on the iOS Simulator against the local database, using the test phone login. The Android build succeeds, but these screens haven't been run on Android yet. That test is covered by the open Android task in Step 1.
+**Status:** complete. Verified on the iOS Simulator and a real Android phone (moto g96, Android 16) against the local database, using a test number.
 
 ## Step 5: Sales and commission
 
@@ -164,6 +164,7 @@ Full details are in [plan.md](plan.md).
 
 ## Step 8: Launch prep
 
+- [ ] Set the production Google redirect URL, and use https for the production server
 - [ ] Complete RLS audit and secret scan
 - [ ] Daily clean-up of photo files that no listing uses
 - [ ] Set production secrets: `project_url` and `moderation_secret` in the Vault, and `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on the function. Never set `MODERATION_PROVIDER` there

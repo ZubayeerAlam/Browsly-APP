@@ -36,7 +36,12 @@ class CheckoutScreen extends StatelessWidget {
     final cart = state.data;
     return Scaffold(
       appBar: AppBar(
-        leading: const AppBackButton(fallback: AppRoutes.cart),
+        // Buy Now skips the cart, so going back must not land there.
+        leading: AppBackButton(
+          fallback: provider.buyNowVariantId == null
+              ? AppRoutes.cart
+              : AppRoutes.products,
+        ),
         title: const Text('Checkout'),
       ),
       body: switch (state.status) {

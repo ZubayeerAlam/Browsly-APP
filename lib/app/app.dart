@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,7 @@ import '../features/profile/presentation/providers/profile_provider.dart';
 import '../features/shop/domain/repositories/shop_repository.dart';
 import '../features/wishlist/domain/repositories/wishlist_repository.dart';
 import '../features/wishlist/presentation/providers/wishlist_provider.dart';
+import 'router/app_back_dispatcher.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -59,6 +61,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
   late final WishlistProvider _wishlistProvider;
   late final CartProvider _cartProvider;
   late final GoRouter _router;
+  late final AppBackDispatcher _backDispatcher;
 
   @override
   void initState() {
@@ -71,6 +74,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
     );
     _cartProvider = CartProvider(widget.cartRepository, _authProvider);
     _router = createAppRouter(_authProvider);
+    _backDispatcher = AppBackDispatcher(_router);
   }
 
   @override
@@ -107,7 +111,17 @@ class _BrowslyAppState extends State<BrowslyApp> {
         title: 'Browsly',
         debugShowCheckedModeBanner: false,
         theme: widget.theme ?? AppTheme.light(),
-        routerConfig: _router,
+        routerDelegate: _router.routerDelegate,
+        routeInformationParser: _router.routeInformationParser,
+        routeInformationProvider: _router.routeInformationProvider,
+        backButtonDispatcher: _backDispatcher,
+        // Newer Android versions close the app themselves unless told that
+        // the app handles Back, and Flutter stops saying so on the last screen.
+        // AppBackDispatcher decides what to do, including when to leave.
+        onNavigationNotification: (notification) {
+          SystemNavigator.setFrameworkHandlesBack(true);
+          return true;
+        },
       ),
     );
   }

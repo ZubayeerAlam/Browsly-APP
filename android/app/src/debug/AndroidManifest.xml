@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- The local Supabase server uses plain http. Debug builds only: release
+         builds keep Android's default, which blocks it. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

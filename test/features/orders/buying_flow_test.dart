@@ -4,6 +4,7 @@ import 'package:browsly_app/features/cart/domain/entities/cart.dart';
 import 'package:browsly_app/features/orders/data/models/order_models.dart';
 import 'package:browsly_app/features/orders/domain/entities/order.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,6 +48,79 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  group('the phone\'s Back button', () {
+    Future<String> backFrom(WidgetTester tester, String location) async {
+      await pump(tester);
+      await goTo(tester, location);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(Scaffold).first);
+      return GoRouter.of(context).routerDelegate.currentConfiguration.uri
+          .toString();
+    }
+
+    testWidgets('Android is always told the app handles Back', (tester) async {
+      final told = <bool>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'SystemNavigator.setFrameworkHandlesBack') {
+            told.add(call.arguments as bool);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+
+      await pump(tester);
+      await goTo(tester, '/orders');
+      await goTo(tester, '/dashboard');
+
+      expect(told, isNotEmpty);
+      expect(told, everyElement(isTrue));
+    });
+
+    testWidgets('order details goes to My Orders', (tester) async {
+      orders.order = testOrder();
+      expect(await backFrom(tester, '/orders/order-1'), '/orders');
+    });
+
+    testWidgets('My Orders goes to the Dashboard', (tester) async {
+      expect(await backFrom(tester, '/orders'), '/dashboard');
+    });
+
+    testWidgets('checkout goes to the cart', (tester) async {
+      cart.lines = [testCartLine('v1')];
+      expect(await backFrom(tester, '/checkout'), '/cart');
+    });
+
+    testWidgets('Buy Now checkout goes to Products', (tester) async {
+      expect(await backFrom(tester, '/checkout/v1'), '/products');
+    });
+
+    testWidgets('a confirm dialog closes first, and stays on the screen', (
+      tester,
+    ) async {
+      orders.order = testOrder();
+      await pump(tester);
+      await goTo(tester, '/orders/order-1');
+      await tester.tap(find.text('Cancel order'));
+      await tester.pumpAndSettle();
+      expect(find.text('Keep order'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Keep order'), findsNothing);
+      expect(find.text('Order details'), findsOneWidget);
+    });
+  });
+
   testWidgets('a guest pressing the cart icon goes to sign in', (tester) async {
     await pumpApp(tester, auth: FakeAuthRepository(), catalog: catalog);
 
@@ -66,7 +140,7 @@ void main() {
 
     expect(cart.calls, ['addProduct:1']);
     expect(find.text('Added to cart'), findsOneWidget);
-    expect(find.byTooltip('Cart, 1 items'), findsOneWidget);
+    expect(find.byTooltip('Cart, 1 item'), findsOneWidget);
 
     // It must clear by itself, because it covers the product cards.
     await tester.pump(const Duration(seconds: 4));

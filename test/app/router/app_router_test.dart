@@ -148,4 +148,30 @@ void main() {
       expect(redirect(path: AppRoutes.resetPassword), AppRoutes.dashboard);
     });
   });
+
+  group('backFallback', () {
+    String? back(String location) =>
+        AppRoutes.backFallback(Uri.parse(location));
+
+    test('the Dashboard leaves the app', () {
+      expect(back('/dashboard'), isNull);
+    });
+
+    test('other tabs and top-level screens go to the Dashboard', () {
+      for (final path in ['/products', '/sales', '/wishlist', '/my-posts']) {
+        expect(back(path), '/dashboard', reason: path);
+      }
+    });
+
+    test('Post returns to where it was opened from', () {
+      expect(back('/post?from=/my-posts'), '/my-posts');
+      expect(back('/post'), '/dashboard');
+      expect(back('/post?from=//example.com'), '/dashboard');
+    });
+
+    test('login never returns to a screen that needs sign-in', () {
+      expect(back('/login?from=/post'), '/dashboard');
+      expect(back('/verify-phone?from=/checkout'), '/dashboard');
+    });
+  });
 }

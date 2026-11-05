@@ -80,6 +80,23 @@ abstract final class AppRoutes {
         path.startsWith('$settings/');
   }
 
+  /// Where the phone's Back goes from a screen with nothing behind it. Null on
+  /// the Dashboard, where Back leaves the app as usual.
+  static String? backFallback(Uri location) {
+    final path = location.path;
+    if (path == dashboard) return null;
+    if (path == checkout) return cart;
+    if (path.startsWith('$checkout/')) return products;
+    if (path.startsWith('$orders/')) return orders;
+    if (path == post) {
+      final from = location.queryParameters['from'];
+      if (from != null && from.startsWith('/') && !from.startsWith('//')) {
+        return from;
+      }
+    }
+    return dashboard;
+  }
+
   /// Adds where the user was heading, so they can continue there afterwards.
   static String withFrom(String path, String? from) {
     return Uri(

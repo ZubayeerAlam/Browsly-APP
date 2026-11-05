@@ -212,13 +212,13 @@ GoRouter createAppRouter(AuthProvider auth) {
       GoRoute(
         path: AppRoutes.checkout,
         builder: (context, state) => _checkout(null),
-        routes: [
-          GoRoute(
-            path: ':variantId',
-            builder: (context, state) =>
-                _checkout(state.pathParameters['variantId']),
-          ),
-        ],
+      ),
+      // Not nested under checkout: going back from Buy Now must not open a
+      // checkout for the whole cart.
+      GoRoute(
+        path: '${AppRoutes.checkout}/:variantId',
+        builder: (context, state) =>
+            _checkout(state.pathParameters['variantId']),
       ),
       GoRoute(
         path: AppRoutes.checkoutAddressForm,
