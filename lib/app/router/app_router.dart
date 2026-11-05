@@ -10,7 +10,16 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/phone_auth_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/catalog/domain/entities/product_filters.dart';
+import '../../features/catalog/domain/repositories/catalog_repository.dart';
+import '../../features/catalog/presentation/providers/product_detail_provider.dart';
+import '../../features/catalog/presentation/providers/product_list_provider.dart';
+import '../../features/catalog/presentation/providers/shop_provider.dart';
+import '../../features/catalog/presentation/screens/product_detail_screen.dart';
 import '../../features/catalog/presentation/screens/products_screen.dart';
+import '../../features/catalog/presentation/screens/search_screen.dart';
+import '../../features/catalog/presentation/screens/shop_screen.dart';
+import '../../features/dashboard/presentation/providers/home_provider.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/listings/presentation/screens/post_screen.dart';
 import '../../features/profile/domain/entities/address.dart';
@@ -24,12 +33,19 @@ import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/sales/presentation/screens/sales_screen.dart';
 import '../../features/statistics/presentation/screens/statistics_screen.dart';
+import '../../features/wishlist/domain/repositories/wishlist_repository.dart';
+import '../../features/wishlist/presentation/providers/saved_products_provider.dart';
+import '../../features/wishlist/presentation/screens/wishlist_screen.dart';
 import '../shell/main_shell.dart';
 import 'app_routes.dart';
 
 /// Screens open with `go` and nested routes rather than `push`, because
 /// GoRouter does not re-check redirects for pushed screens. That re-check is
 /// what moves users on after signing in, signing out or verifying a phone.
+///
+/// Public browsing screens (search, product and shop) are the exception. They
+/// open from many places and from each other, so they are pushed to keep the
+/// way back, and they need no sign-in to stay open.
 GoRouter createAppRouter(AuthProvider auth) {
   return GoRouter(
     initialLocation: AppRoutes.dashboard,
@@ -47,8 +63,38 @@ GoRouter createAppRouter(AuthProvider auth) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
-          _tab(AppRoutes.dashboard, const DashboardScreen()),
-          _tab(AppRoutes.products, const ProductsScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.dashboard,
+                builder: (context, state) => ChangeNotifierProvider(
+                  create: (context) =>
+                      HomeProvider(context.read<CatalogRepository>())..load(),
+                  child: const DashboardScreen(),
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.products,
+                builder: (context, state) {
+                  final categoryId = state.uri.queryParameters['category'];
+                  return ChangeNotifierProvider(
+                    create: (context) =>
+                        ProductListProvider(
+                            context.read<CatalogRepository>(),
+                            filters: ProductFilters(categoryId: categoryId),
+                          )
+                          ..reload()
+                          ..loadCategories(),
+                    child: ProductsScreen(categoryId: categoryId),
+                  );
+                },
+              ),
+            ],
+          ),
           _tab(AppRoutes.sales, const SalesScreen()),
           _tab(AppRoutes.statistics, const StatisticsScreen()),
         ],
@@ -57,6 +103,58 @@ GoRouter createAppRouter(AuthProvider auth) {
         path: AppRoutes.post,
         builder: (context, state) =>
             PostScreen(backTo: _safeFrom(state.uri.queryParameters['from'])),
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              ProductListProvider(context.read<CatalogRepository>()),
+          child: const SearchScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/product/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ChangeNotifierProvider(
+            key: ValueKey(id),
+            create: (context) =>
+                ProductDetailProvider(context.read<CatalogRepository>(), id)
+                  ..load(),
+            child: const ProductDetailScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/shop/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MultiProvider(
+            key: ValueKey(id),
+            providers: [
+              ChangeNotifierProvider(
+                create: (context) =>
+                    ShopProvider(context.read<CatalogRepository>(), id)..load(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => ProductListProvider(
+                  context.read<CatalogRepository>(),
+                  filters: ProductFilters(shopId: id),
+                )..reload(),
+              ),
+            ],
+            child: const ShopScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.wishlist,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              SavedProductsProvider(context.read<WishlistRepository>())
+                ..reload(),
+          child: const WishlistScreen(),
+        ),
       ),
       _authRoute(
         AppRoutes.login,

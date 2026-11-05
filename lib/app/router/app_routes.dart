@@ -5,6 +5,18 @@ abstract final class AppRoutes {
   static const statistics = '/statistics';
   static const post = '/post';
 
+  static const search = '/search';
+  static const wishlist = '/wishlist';
+
+  static String product(String id) => '/product/$id';
+  static String shop(String id) => '/shop/$id';
+
+  /// The Products tab, showing one category or all of them.
+  static String productsIn(String? categoryId) => Uri(
+    path: products,
+    queryParameters: categoryId == null ? null : {'category': categoryId},
+  ).toString();
+
   static const login = '/login';
   static const signUp = '/login/sign-up';
   static const forgotPassword = '/login/forgot-password';
@@ -30,6 +42,7 @@ abstract final class AppRoutes {
         path == statistics ||
         path == post ||
         path == verifyPhone ||
+        path == wishlist ||
         path == settings ||
         path.startsWith('$settings/');
   }

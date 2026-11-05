@@ -55,3 +55,30 @@ join public.regions as parent
   and parent.level = 'division'
   and parent.name = district.division
 on conflict on constraint regions_unique_name do nothing;
+
+-- Starter categories. Admins manage these from Step 7.
+insert into public.categories (name, slug, icon, sort_order)
+values
+  ('Fashion', 'fashion', 'checkroom', 10),
+  ('Electronics', 'electronics', 'devices', 20),
+  ('Home & Living', 'home-living', 'chair', 30),
+  ('Beauty', 'beauty', 'spa', 40),
+  ('Sports', 'sports', 'sports_soccer', 50),
+  ('Books', 'books', 'menu_book', 60)
+on conflict (slug) do nothing;
+
+insert into public.categories (parent_id, name, slug, icon, sort_order)
+select parent.id, child.name, child.slug, parent.icon, child.sort_order
+from (
+  values
+    ('fashion', 'Men', 'fashion-men', 10),
+    ('fashion', 'Women', 'fashion-women', 20),
+    ('fashion', 'Shoes', 'fashion-shoes', 30),
+    ('electronics', 'Phones', 'electronics-phones', 10),
+    ('electronics', 'Audio', 'electronics-audio', 20),
+    ('electronics', 'Accessories', 'electronics-accessories', 30),
+    ('home-living', 'Furniture', 'home-furniture', 10),
+    ('home-living', 'Kitchen', 'home-kitchen', 20)
+) as child (parent_slug, name, slug, sort_order)
+join public.categories as parent on parent.slug = child.parent_slug
+on conflict (slug) do nothing;

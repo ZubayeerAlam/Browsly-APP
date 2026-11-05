@@ -282,7 +282,7 @@ erDiagram
 | `profiles` | `id` PK → `auth.users`; full_name, avatar_path, phone, phone_verified_at, country_code, status (active, suspended, deleted). Created by a trigger on signup |
 | `admin_users` | `user_id` PK. Separate table so users can never make themselves admin |
 | `seller_profiles` | `user_id` PK; status (active, suspended), payout/contact number, terms_accepted_at. Private |
-| `shops` | seller_id **unique**, name, slug **unique**, logo, banner, description, region_id, contact_phone, `delivery_fee ≥ 0`, is_active, rating_avg, rating_count |
+| `shops` | seller_id **unique** (never exposed to clients), name, slug **unique**, logo, banner, description, region_id, `delivery_fee ≥ 0`, is_active, rating_avg, rating_count |
 | `addresses` | user_id, recipient_name, phone, region_id, line1, postal_code, is_default. Partial unique index allows one default per user |
 
 **Location and settings**
@@ -298,7 +298,7 @@ erDiagram
 | Table | Key columns and rules |
 |---|---|
 | `categories` | parent_id, name, slug unique, icon, sort_order, is_active |
-| `products` | shop_id, category_id, title, slug, description, condition, status, country_code, min_price, rating_avg, rating_count, sold_count, search_vector. Status: draft, pending_review, admin_review, active, rejected, paused, removed. Sellers see both pending_review and admin_review as "In review" |
+| `products` | shop_id, category_id, title, description, condition, status, country_code, min_price, compare_at_price, total_stock (those three kept correct by a trigger), rating_avg, rating_count, sold_count, search_vector. Status: draft, pending_review, admin_review, active, rejected, paused, removed. Sellers see both pending_review and admin_review as "In review" |
 | `product_images` | product_id, storage_path, sort_order. 1–5 per product |
 | `product_variants` | product_id, sku, name, options (JSON), `price > 0`, compare_at_price, `stock ≥ 0`, image_id (photo for this colour), is_active |
 | `moderation_reviews` | product_id, policy_version, provider, model, ai_decision (approve, suspicious, reject), reason_code, ai_reason, status (queued, done, error), attempts, next_attempt_at, admin_decision (approve, reject), admin_reason, decided_by, decided_at. AI reasons are visible to admins only |

@@ -6,13 +6,34 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_failure.dart';
 
 /// Runs a data-layer call and converts any error into an [AppFailure].
+///
+/// If a saved session turns out to be dead, the Supabase client signs out and
+/// fails that one request. Retrying then runs it as a guest, so public screens
+/// still load. Private data stays protected by RLS, and the sign-out already
+/// sends the user to sign in where needed.
 Future<T> guardFailures<T>(Future<T> Function() action) async {
+  try {
+    return await action();
+  } on AuthException catch (error) {
+    if (!_endedSessionCodes.contains(error.code)) {
+      throw mapErrorToFailure(error);
+    }
+  } catch (error) {
+    throw mapErrorToFailure(error);
+  }
   try {
     return await action();
   } catch (error) {
     throw mapErrorToFailure(error);
   }
 }
+
+const _endedSessionCodes = {
+  'refresh_token_not_found',
+  'refresh_token_already_used',
+  'session_not_found',
+  'session_expired',
+};
 
 AppFailure mapErrorToFailure(Object error) {
   return switch (error) {

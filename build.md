@@ -20,7 +20,7 @@ Full details are in [plan.md](plan.md).
 - [x] Planning: `plan.md` and `build.md` created
 - [x] Step 0: Foundation
 - [ ] Step 1: Accounts (in progress: needs Google, SMS and an Android test)
-- [ ] Step 2: Marketplace
+- [x] Step 2: Marketplace
 - [ ] Step 3: Selling and AI review
 - [ ] Step 4: Buying
 - [ ] Step 5: Sales and commission
@@ -67,21 +67,23 @@ Full details are in [plan.md](plan.md).
 
 ## Step 2: Marketplace
 
-- [ ] Catalog tables, indexes, RLS and dev seed
-- [ ] `search_products`
-- [ ] Home screen
-- [ ] Product list, search and filter screens
-- [ ] Product details with colours, sizes, discount price, share and Chat with seller placeholder
-- [ ] Shop page
-- [ ] Wishlist
-- [ ] Paging, image caching, and empty and error states
+- [x] Catalog tables, indexes, RLS and dev seed
+- [x] `search_products`
+- [x] Home screen
+- [x] Product list, search and filter screens
+- [x] Product details with colours, sizes, discount price, share and Chat with seller placeholder
+- [x] Shop page
+- [x] Wishlist
+- [x] Paging, image caching, and empty and error states
 
 **Done when:** a guest can browse, search and filter seeded products, and a logged-in user can save to the wishlist.
+
+**Status:** complete. Verified on the iOS Simulator against the local database, using demo data. The Android build succeeds, but the screens haven't been run on Android yet. That test is covered by the open Android task in Step 1.
 
 ## Step 3: Selling and AI review
 
 - [ ] `become_seller` and shop setup
-- [ ] Storage buckets and policies
+- [ ] Upload policies for the storage buckets (the `product-images` and `shop-assets` buckets already exist, read-only)
 - [ ] Post flow from the demo (max 5 JPG or PNG photos) with image compression and drafts
 - [ ] Pass product photos through `preparePhotoForUpload` so location data is removed, then check the stored file
 - [ ] Draft the prohibited-products policy for your approval
@@ -91,12 +93,15 @@ Full details are in [plan.md](plan.md).
 - [ ] Route suspicious, rejected and timed-out products to `admin_review`
 - [ ] My Listings with rejection reason, edit and resubmit, pause and delete
 - [ ] Trigger: edits to reviewed fields return the product to review
+- [ ] Remove a seller's photos from storage when their account is deleted
 
 **Done when:** a valid listing goes live through AI approval, a suspicious or prohibited one reaches the admin queue, and an AI outage never publishes a product.
 
 ## Step 4: Buying
 
 - [ ] Cart tables and repository
+- [ ] Cart button on product cards, and cart icon in the Dashboard top bar
+- [ ] Connect the Add to Cart and Buy Now buttons on product details (they say "coming soon" for now)
 - [ ] Seller-grouped cart screen
 - [ ] Buy Now from product details
 - [ ] Order tables, RLS and price snapshots
@@ -124,13 +129,14 @@ Full details are in [plan.md](plan.md).
 
 - [ ] `conversations` and `messages` tables, RLS and tests
 - [ ] Chat RPCs, Realtime, conversation list, chat room and unread count
-- [ ] "Chat with seller" on product and order screens
+- [ ] Connect "Chat with seller" on product details (it says "coming soon" for now), and add it to order screens
+- [ ] Chat and notification icons in the Dashboard top bar
 - [ ] Report a message
 - [ ] FCM setup, device tokens, `send-push` and notification centre
 - [ ] `track_event` and app tracking (view = details opened, click = card tapped)
 - [ ] Nightly rollup and `get_seller_stats`
-- [ ] Statistics and Dashboard with real data
-- [ ] Reviews and rating updates
+- [ ] Statistics and Dashboard with real data (clicks, sales, views and rating cards, View Insights)
+- [ ] Reviews and rating updates, including the review list on product details
 - [ ] Reports
 
 **Done when:** chat works in real time between two devices and only its two participants can read it, push arrives, and Statistics show real numbers.
@@ -140,6 +146,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Create `admin_web`, admin login and `is_admin()` checks
 - [ ] Product Review queue: listing, images, AI reason, approve or reject with a reason
 - [ ] Overview (including queue count), users, products, orders
+- [ ] Suspending a seller also turns off their shop, which hides their products
 - [ ] Categories, settings (commission rate and limits), banners
 - [ ] Reports and settlement recording
 - [ ] Audit tests
@@ -149,10 +156,10 @@ Full details are in [plan.md](plan.md).
 ## Step 8: Launch prep
 
 - [ ] Complete RLS audit and secret scan
-- [ ] Performance check with large seed data
+- [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds
 - [ ] Terms, privacy policy, seller terms and listing policy (legal review)
 - [ ] App icons and store listings
-- [ ] Staging → production migration rehearsal and backups
+- [ ] Staging → production migration rehearsal and backups. Apply only `seed.sql` to production, never `seed_dev.sql`, and never use `db push --include-seed`
 - [ ] Closed beta with real sellers
 - [ ] Fix beta issues
 - [ ] Submit to Google Play and the App Store

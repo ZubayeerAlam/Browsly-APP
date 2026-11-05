@@ -18,7 +18,9 @@ const _address = Address(
 );
 
 Future<void> openSettings(WidgetTester tester) async {
-  await tester.tap(find.byTooltip('Settings'));
+  await tester.tap(find.byTooltip('Account'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Settings'));
   await tester.pumpAndSettle();
 }
 

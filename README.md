@@ -39,6 +39,8 @@ flutter analyze
 flutter test
 ```
 
+`supabase db reset` also loads demo sellers and products from `supabase/seed_dev.sql`, and uploads their photos when the full stack is running. This data is for local development only: apply only `supabase/seed.sql` to production, and never use `supabase db push --include-seed`.
+
 Database commands need the [Supabase CLI](https://supabase.com/docs/guides/local-development) and Docker:
 
 ```bash

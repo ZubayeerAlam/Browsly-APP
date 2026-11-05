@@ -6,6 +6,51 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  group('a dead saved session', () {
+    test('retries once, so public data still loads', () async {
+      var calls = 0;
+
+      final result = await guardFailures(() async {
+        calls++;
+        if (calls == 1) {
+          throw const AuthException('gone', code: 'refresh_token_not_found');
+        }
+        return 'public data';
+      });
+
+      expect(result, 'public data');
+      expect(calls, 2);
+    });
+
+    test('does not retry forever', () async {
+      var calls = 0;
+
+      await expectLater(
+        guardFailures<void>(() async {
+          calls++;
+          throw const AuthException('gone', code: 'refresh_token_not_found');
+        }),
+        throwsA(isA<AuthFailure>()),
+      );
+
+      expect(calls, 2);
+    });
+
+    test('other sign-in errors are not retried', () async {
+      var calls = 0;
+
+      await expectLater(
+        guardFailures<void>(() async {
+          calls++;
+          throw const AuthException('no', code: 'invalid_credentials');
+        }),
+        throwsA(isA<AuthFailure>()),
+      );
+
+      expect(calls, 1);
+    });
+  });
+
   test('maps sign-in errors to clear messages', () {
     final messages = {
       'invalid_credentials': 'incorrect',

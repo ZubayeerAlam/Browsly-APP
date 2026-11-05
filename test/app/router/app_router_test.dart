@@ -31,6 +31,7 @@ void main() {
         AppRoutes.addresses,
         AppRoutes.addressForm,
         AppRoutes.verifyPhone,
+        AppRoutes.wishlist,
       ]) {
         expect(redirect(path: path), startsWith('/login'), reason: path);
       }
@@ -40,6 +41,9 @@ void main() {
       for (final path in [
         AppRoutes.dashboard,
         AppRoutes.products,
+        AppRoutes.search,
+        AppRoutes.product('some-id'),
+        AppRoutes.shop('some-id'),
         AppRoutes.login,
         AppRoutes.signUp,
         AppRoutes.phoneSignIn,

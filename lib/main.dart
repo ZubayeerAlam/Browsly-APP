@@ -6,10 +6,14 @@ import 'app/app.dart';
 import 'core/config/app_config.dart';
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/catalog/data/datasources/catalog_remote_data_source.dart';
+import 'features/catalog/data/repositories/catalog_repository_impl.dart';
 import 'features/profile/data/datasources/address_remote_data_source.dart';
 import 'features/profile/data/datasources/profile_remote_data_source.dart';
 import 'features/profile/data/repositories/address_repository_impl.dart';
 import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/wishlist/data/datasources/wishlist_remote_data_source.dart';
+import 'features/wishlist/data/repositories/wishlist_repository_impl.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +39,10 @@ Future<void> main() async {
       authRepository: AuthRepositoryImpl(AuthRemoteDataSource(client)),
       profileRepository: ProfileRepositoryImpl(ProfileRemoteDataSource(client)),
       addressRepository: AddressRepositoryImpl(AddressRemoteDataSource(client)),
+      catalogRepository: CatalogRepositoryImpl(CatalogRemoteDataSource(client)),
+      wishlistRepository: WishlistRepositoryImpl(
+        WishlistRemoteDataSource(client),
+      ),
     ),
   );
 }

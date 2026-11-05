@@ -7,11 +7,17 @@ import 'package:browsly_app/core/config/app_config.dart';
 import 'package:browsly_app/core/errors/app_failure.dart';
 import 'package:browsly_app/features/auth/domain/entities/auth_user.dart';
 import 'package:browsly_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:browsly_app/features/catalog/domain/entities/category.dart';
+import 'package:browsly_app/features/catalog/domain/entities/product.dart';
+import 'package:browsly_app/features/catalog/domain/entities/product_filters.dart';
+import 'package:browsly_app/features/catalog/domain/entities/shop.dart';
+import 'package:browsly_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:browsly_app/features/profile/domain/entities/address.dart';
 import 'package:browsly_app/features/profile/domain/entities/profile.dart';
 import 'package:browsly_app/features/profile/domain/entities/region.dart';
 import 'package:browsly_app/features/profile/domain/repositories/address_repository.dart';
 import 'package:browsly_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:browsly_app/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -209,11 +215,180 @@ class FakeAddressRepository implements AddressRepository {
   }
 }
 
+ProductSummary testProduct(
+  String id, {
+  String? title,
+  String shopId = 'shop-1',
+  double price = 1000,
+  double? compareAtPrice,
+  int stock = 5,
+}) {
+  return ProductSummary(
+    id: id,
+    title: title ?? 'Product $id',
+    shopId: shopId,
+    shopName: 'Test Shop',
+    price: price,
+    compareAtPrice: compareAtPrice,
+    totalStock: stock,
+  );
+}
+
+ProductVariant testVariant(
+  String id, {
+  String? colour,
+  String? size,
+  double price = 1000,
+  double? compareAtPrice,
+  int stock = 5,
+}) {
+  return ProductVariant(
+    id: id,
+    colour: colour,
+    size: size,
+    price: price,
+    compareAtPrice: compareAtPrice,
+    stock: stock,
+  );
+}
+
+ProductDetail testDetail(
+  String id, {
+  List<ProductVariant>? variants,
+  List<String> imageUrls = const [],
+}) {
+  return ProductDetail(
+    id: id,
+    title: 'Product $id',
+    description: 'About product $id',
+    isNew: true,
+    imageUrls: imageUrls,
+    variants: variants ?? [testVariant('$id-default')],
+    shop: const ProductShop(id: 'shop-1', name: 'Test Shop', deliveryFee: 60),
+  );
+}
+
+/// An in-memory catalog with cursor paging like the server's.
+class FakeCatalogRepository implements CatalogRepository {
+  List<ProductSummary> products = [];
+  List<Category> categories = [];
+  final Map<String, ProductDetail> details = {};
+  final Map<String, String> categoryOf = {};
+  Shop? shop;
+  AppFailure? failWith;
+  final List<ProductFilters> searches = [];
+
+  /// When set, the next search waits for this, to test slow responses.
+  Future<void>? searchGate;
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<List<Category>> getCategories() async {
+    _maybeFail();
+    return categories;
+  }
+
+  @override
+  Future<ProductPage> searchProducts(
+    ProductFilters filters, {
+    ProductCursor? cursor,
+    int limit = 20,
+  }) async {
+    searches.add(filters);
+    final gate = searchGate;
+    searchGate = null;
+    if (gate != null) await gate;
+    _maybeFail();
+    final query = filters.query?.toLowerCase();
+    final matches = products.where((product) {
+      return (query == null || product.title.toLowerCase().contains(query)) &&
+          (filters.categoryId == null ||
+              categoryOf[product.id] == filters.categoryId) &&
+          (filters.shopId == null || product.shopId == filters.shopId);
+    }).toList();
+    return pageOf(matches, cursor, limit);
+  }
+
+  @override
+  Future<ProductDetail?> getProduct(String id) async {
+    _maybeFail();
+    return details[id];
+  }
+
+  @override
+  Future<Shop?> getShop(String id) async {
+    _maybeFail();
+    return shop;
+  }
+}
+
+ProductPage pageOf(
+  List<ProductSummary> items,
+  ProductCursor? cursor,
+  int limit,
+) {
+  final start = cursor == null ? 0 : int.parse(cursor.key);
+  final end = start + limit;
+  return ProductPage(
+    items: items.sublist(start, end.clamp(0, items.length)),
+    next: end < items.length ? ProductCursor(key: '$end', id: 'id') : null,
+  );
+}
+
+class FakeWishlistRepository implements WishlistRepository {
+  /// Everything the server considers saved, newest first.
+  List<ProductSummary> saved = [];
+  AppFailure? failWith;
+  int writes = 0;
+
+  /// When set, writes wait for this, to test taps while one is on its way.
+  Future<void>? writeGate;
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<Set<String>> getSavedIds() async {
+    _maybeFail();
+    return saved.map((product) => product.id).toSet();
+  }
+
+  @override
+  Future<void> add(String productId) async {
+    writes++;
+    if (writeGate != null) await writeGate;
+    _maybeFail();
+    saved = [testProduct(productId), ...saved];
+  }
+
+  @override
+  Future<void> remove(String productId) async {
+    writes++;
+    if (writeGate != null) await writeGate;
+    _maybeFail();
+    saved = saved.where((product) => product.id != productId).toList();
+  }
+
+  @override
+  Future<ProductPage> getPage({ProductCursor? cursor, int limit = 20}) async {
+    _maybeFail();
+    return pageOf(saved, cursor, limit);
+  }
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   required AuthRepository auth,
   ProfileRepository? profile,
   AddressRepository? addresses,
+  CatalogRepository? catalog,
+  WishlistRepository? wishlist,
 }) async {
   await tester.pumpWidget(
     BrowslyApp(
@@ -224,6 +399,8 @@ Future<void> pumpApp(
       authRepository: auth,
       profileRepository: profile ?? FakeProfileRepository(),
       addressRepository: addresses ?? FakeAddressRepository(),
+      catalogRepository: catalog ?? FakeCatalogRepository(),
+      wishlistRepository: wishlist ?? FakeWishlistRepository(),
       theme: AppTheme.light(baseTextTheme: ThemeData().textTheme),
     ),
   );
