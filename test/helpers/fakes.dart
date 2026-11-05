@@ -12,11 +12,14 @@ import 'package:browsly_app/features/catalog/domain/entities/product.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product_filters.dart';
 import 'package:browsly_app/features/catalog/domain/entities/shop.dart';
 import 'package:browsly_app/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:browsly_app/features/listings/domain/entities/listing.dart';
+import 'package:browsly_app/features/listings/domain/repositories/listing_repository.dart';
 import 'package:browsly_app/features/profile/domain/entities/address.dart';
 import 'package:browsly_app/features/profile/domain/entities/profile.dart';
 import 'package:browsly_app/features/profile/domain/entities/region.dart';
 import 'package:browsly_app/features/profile/domain/repositories/address_repository.dart';
 import 'package:browsly_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:browsly_app/features/shop/domain/repositories/shop_repository.dart';
 import 'package:browsly_app/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -382,6 +385,162 @@ class FakeWishlistRepository implements WishlistRepository {
   }
 }
 
+const testShop = Shop(
+  id: 'shop-1',
+  name: 'Test Shop',
+  description: 'A shop for testing',
+  deliveryFee: 60,
+  regionId: 'gazipur',
+  regionName: 'Gazipur',
+);
+
+class FakeShopRepository implements ShopRepository {
+  FakeShopRepository({this.shop = testShop});
+
+  Shop? shop;
+  AppFailure? failWith;
+  ShopInput? lastInput;
+  bool? lastAcceptedTerms;
+  Uint8List? uploadedLogo;
+  int creates = 0;
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<Shop?> getMyShop() async {
+    _maybeFail();
+    return shop;
+  }
+
+  @override
+  Future<String> createShop(
+    ShopInput input, {
+    required String? payoutNumber,
+    required bool acceptedTerms,
+  }) async {
+    _maybeFail();
+    creates++;
+    lastInput = input;
+    lastAcceptedTerms = acceptedTerms;
+    shop = Shop(
+      id: 'new-shop',
+      name: input.name,
+      description: input.description,
+      deliveryFee: input.deliveryFee,
+      regionId: input.regionId,
+    );
+    return 'new-shop';
+  }
+
+  @override
+  Future<void> updateShop(String shopId, ShopInput input) async {
+    _maybeFail();
+    lastInput = input;
+  }
+
+  @override
+  Future<void> updateLogo(String shopId, Uint8List jpegBytes) async {
+    _maybeFail();
+    uploadedLogo = jpegBytes;
+  }
+}
+
+class FakeListingRepository implements ListingRepository {
+  final List<ListingSummary> listings = [];
+  final Map<String, EditableListing> editable = {};
+  AppFailure? failWith;
+  AppFailure? failSubmitWith;
+  AppFailure? failUploadWith;
+  final List<ListingInput> saves = [];
+  final List<Uint8List> uploads = [];
+  final List<String> submitted = [];
+  final List<String> removedPaths = [];
+  final List<String> deleted = [];
+  final List<(String, bool)> pausedCalls = [];
+  final List<ListingTab> tabsRequested = [];
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<ListingPage> getMyListings(
+    ListingTab tab, {
+    ListingCursor? cursor,
+    int limit = 20,
+  }) async {
+    _maybeFail();
+    tabsRequested.add(tab);
+    final matches = listings.where((listing) {
+      return switch (tab) {
+        ListingTab.all => true,
+        ListingTab.active =>
+          listing.status == ListingStatus.active ||
+              listing.status == ListingStatus.paused,
+        ListingTab.inReview => listing.status == ListingStatus.inReview,
+        ListingTab.draft => listing.status == ListingStatus.draft,
+        ListingTab.rejected => listing.status == ListingStatus.rejected,
+      };
+    }).toList();
+    final start = cursor == null ? 0 : int.parse(cursor.key);
+    final end = start + limit;
+    return ListingPage(
+      items: matches.sublist(start, end.clamp(0, matches.length)),
+      next: end < matches.length ? ListingCursor(key: '$end', id: 'id') : null,
+    );
+  }
+
+  @override
+  Future<EditableListing?> getListing(String id) async {
+    _maybeFail();
+    return editable[id];
+  }
+
+  @override
+  Future<String> uploadPhoto(String shopId, Uint8List jpegBytes) async {
+    final failure = failUploadWith;
+    if (failure != null) throw failure;
+    uploads.add(jpegBytes);
+    return '$shopId/photo-${uploads.length}.jpg';
+  }
+
+  @override
+  Future<String> save(ListingInput input) async {
+    _maybeFail();
+    saves.add(input);
+    return input.id ?? 'new-listing';
+  }
+
+  @override
+  Future<void> submitForReview(String id) async {
+    final failure = failSubmitWith;
+    if (failure != null) throw failure;
+    submitted.add(id);
+  }
+
+  @override
+  Future<void> setPaused(String id, {required bool paused}) async {
+    _maybeFail();
+    pausedCalls.add((id, paused));
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    _maybeFail();
+    deleted.add(id);
+    listings.removeWhere((listing) => listing.id == id);
+  }
+
+  @override
+  Future<void> removePhotos(List<String> paths) async {
+    removedPaths.addAll(paths);
+  }
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   required AuthRepository auth,
@@ -389,6 +548,8 @@ Future<void> pumpApp(
   AddressRepository? addresses,
   CatalogRepository? catalog,
   WishlistRepository? wishlist,
+  ShopRepository? shops,
+  ListingRepository? listings,
 }) async {
   await tester.pumpWidget(
     BrowslyApp(
@@ -401,6 +562,8 @@ Future<void> pumpApp(
       addressRepository: addresses ?? FakeAddressRepository(),
       catalogRepository: catalog ?? FakeCatalogRepository(),
       wishlistRepository: wishlist ?? FakeWishlistRepository(),
+      shopRepository: shops ?? FakeShopRepository(),
+      listingRepository: listings ?? FakeListingRepository(),
       theme: AppTheme.light(baseTextTheme: ThemeData().textTheme),
     ),
   );

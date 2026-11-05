@@ -39,7 +39,15 @@ flutter analyze
 flutter test
 ```
 
-`supabase db reset` also loads demo sellers and products from `supabase/seed_dev.sql`, and uploads their photos when the full stack is running. This data is for local development only: apply only `supabase/seed.sql` to production, and never use `supabase db push --include-seed`.
+## Product review (AI)
+
+Copy `supabase/functions/.env.example` to `supabase/functions/.env`, then restart Supabase. The example uses a fake AI, so no key is needed: a listing title containing `[suspicious]`, `[reject]` or `[aierror]` chooses that result, and anything else is approved. To test the real AI, follow the comments in that file. Never set `MODERATION_PROVIDER` in production.
+
+The function's tests run with:
+
+```bash
+deno test --allow-env --no-lock supabase/functions/moderate-product/moderation_test.ts
+```
 
 Database commands need the [Supabase CLI](https://supabase.com/docs/guides/local-development) and Docker:
 
@@ -48,3 +56,5 @@ supabase db start
 supabase db reset
 supabase test db
 ```
+
+`supabase db reset` also loads demo sellers and products from `supabase/seed_dev.sql`, and uploads their photos when the full stack is running. This data is for local development only: apply only `supabase/seed.sql` to production, and never use `supabase db push --include-seed`.

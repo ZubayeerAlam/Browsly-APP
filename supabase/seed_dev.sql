@@ -165,3 +165,10 @@ set status = case title
   else 'active'::public.product_status
 end
 where id::text like 'b0000000-0000-4000-8000-%';
+
+-- Lets the database wake the local moderate-product function. These values are
+-- for local development only. Production has its own secrets in the Vault.
+select vault.create_secret('http://supabase_kong_browsly:8000', 'project_url')
+where not exists (select 1 from vault.secrets where name = 'project_url');
+select vault.create_secret('local-dev-moderation-secret', 'moderation_secret')
+where not exists (select 1 from vault.secrets where name = 'moderation_secret');

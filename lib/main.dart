@@ -8,10 +8,14 @@ import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/catalog/data/datasources/catalog_remote_data_source.dart';
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
+import 'features/listings/data/datasources/listing_remote_data_source.dart';
+import 'features/listings/data/repositories/listing_repository_impl.dart';
 import 'features/profile/data/datasources/address_remote_data_source.dart';
 import 'features/profile/data/datasources/profile_remote_data_source.dart';
 import 'features/profile/data/repositories/address_repository_impl.dart';
 import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/shop/data/datasources/shop_remote_data_source.dart';
+import 'features/shop/data/repositories/shop_repository_impl.dart';
 import 'features/wishlist/data/datasources/wishlist_remote_data_source.dart';
 import 'features/wishlist/data/repositories/wishlist_repository_impl.dart';
 
@@ -33,16 +37,24 @@ Future<void> main() async {
   );
 
   final client = Supabase.instance.client;
+  final catalogRepository = CatalogRepositoryImpl(
+    CatalogRemoteDataSource(client),
+  );
   runApp(
     BrowslyApp(
       config: config,
       authRepository: AuthRepositoryImpl(AuthRemoteDataSource(client)),
       profileRepository: ProfileRepositoryImpl(ProfileRemoteDataSource(client)),
       addressRepository: AddressRepositoryImpl(AddressRemoteDataSource(client)),
-      catalogRepository: CatalogRepositoryImpl(CatalogRemoteDataSource(client)),
+      catalogRepository: catalogRepository,
       wishlistRepository: WishlistRepositoryImpl(
         WishlistRemoteDataSource(client),
       ),
+      shopRepository: ShopRepositoryImpl(
+        ShopRemoteDataSource(client),
+        catalogRepository,
+      ),
+      listingRepository: ListingRepositoryImpl(ListingRemoteDataSource(client)),
     ),
   );
 }

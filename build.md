@@ -21,7 +21,7 @@ Full details are in [plan.md](plan.md).
 - [x] Step 0: Foundation
 - [ ] Step 1: Accounts (in progress: needs Google, SMS and an Android test)
 - [x] Step 2: Marketplace
-- [ ] Step 3: Selling and AI review
+- [ ] Step 3: Selling and AI review (in progress: needs your Gemini key and policy approval)
 - [ ] Step 4: Buying
 - [ ] Step 5: Sales and commission
 - [ ] Step 6: Chat and trust
@@ -82,24 +82,27 @@ Full details are in [plan.md](plan.md).
 
 ## Step 3: Selling and AI review
 
-- [ ] `become_seller` and shop setup
-- [ ] Upload policies for the storage buckets (the `product-images` and `shop-assets` buckets already exist, read-only)
-- [ ] Post flow from the demo (max 5 JPG or PNG photos) with image compression and drafts
-- [ ] Pass product photos through `preparePhotoForUpload` so location data is removed, then check the stored file
-- [ ] Draft the prohibited-products policy for your approval
-- [ ] Choose and test a free AI model
-- [ ] `moderate-product`, adapter, queue, retries and tests
-- [ ] `admin_decide_product`
-- [ ] Route suspicious, rejected and timed-out products to `admin_review`
-- [ ] My Listings with rejection reason, edit and resubmit, pause and delete
-- [ ] Trigger: edits to reviewed fields return the product to review
-- [ ] Remove a seller's photos from storage when their account is deleted
+- [x] `become_seller` and shop setup (logo included; shop banner is not built yet)
+- [x] Upload policies for the storage buckets
+- [x] Post flow from the demo (max 5 JPG or PNG photos) with image compression and drafts
+- [x] Pass product photos through `preparePhotoForUpload` so location data is removed, then check the stored file
+- [ ] Prohibited-products policy (draft written in `docs/prohibited_products_policy.md`; **needs your approval**)
+- [ ] Test the free AI model (`gemini-2.5-flash-lite` is set as the default; **needs your Gemini API key**)
+- [x] `moderate-product`, adapter, queue, retries and tests (tested with a fake AI)
+- [x] `admin_decide_product` (server only; the admin screens are Step 7)
+- [x] Route suspicious, rejected and timed-out products to `admin_review`
+- [x] My Posts with rejection reason, edit and resubmit, pause and delete
+- [x] Edits to reviewed fields return the product to review (done in `save_product`, the only way clients can edit)
+- [x] Remove a seller's photos from storage when their account is deleted
 
 **Done when:** a valid listing goes live through AI approval, a suspicious or prohibited one reaches the admin queue, and an AI outage never publishes a product.
+
+**Status:** in progress. All of this works on the iOS Simulator and the local stack with a fake AI. To finish: test the real Gemini model and approve the policy.
 
 ## Step 4: Buying
 
 - [ ] Cart tables and repository
+- [ ] Point cart and order items at variants without breaking turned-off ones (`save_product` turns variants off rather than deleting them)
 - [ ] Cart button on product cards, and cart icon in the Dashboard top bar
 - [ ] Connect the Add to Cart and Buy Now buttons on product details (they say "coming soon" for now)
 - [ ] Seller-grouped cart screen
@@ -133,6 +136,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Chat and notification icons in the Dashboard top bar
 - [ ] Report a message
 - [ ] FCM setup, device tokens, `send-push` and notification centre
+- [ ] Tell sellers the review result, and refresh My Posts when it arrives (today it needs a pull to refresh)
 - [ ] `track_event` and app tracking (view = details opened, click = card tapped)
 - [ ] Nightly rollup and `get_seller_stats`
 - [ ] Statistics and Dashboard with real data (clicks, sales, views and rating cards, View Insights)
@@ -156,6 +160,8 @@ Full details are in [plan.md](plan.md).
 ## Step 8: Launch prep
 
 - [ ] Complete RLS audit and secret scan
+- [ ] Daily clean-up of photo files that no listing uses
+- [ ] Set production secrets: `project_url` and `moderation_secret` in the Vault, and `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on the function. Never set `MODERATION_PROVIDER` there
 - [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds
 - [ ] Terms, privacy policy, seller terms and listing policy (legal review)
 - [ ] App icons and store listings

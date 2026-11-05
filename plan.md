@@ -160,7 +160,7 @@ Post → images → details and category → variants, price, stock → Preview 
     → Admin rejects: reason shown → seller edits → resubmits (AI reviews again)
 → AI unavailable: stays "In review" and retries; after 24 hours goes to the admin portal
 ```
-Changing the title, description, images or category sends an active product back to review. Price and stock changes do not.
+Changing the title, description, images, category, condition, colours or sizes sends an active product back to review. Price and stock changes do not.
 
 **Fulfil an order**
 ```
@@ -401,7 +401,7 @@ Limits: JPG or PNG, up to 5 MB, compressed in the app first. Images on a non-liv
 
 ### 6.3 AI product review
 
-**Recommendation: start with the Google Gemini API free tier**, behind a small `ModerationProvider` adapter. Reasons:
+**Decision: the Google Gemini API free tier**, behind a small `ModerationProvider` adapter. The model is a setting (`GEMINI_MODEL`, default `gemini-2.5-flash-lite`), and the real model still needs testing with a key. Reasons:
 
 - It offers a free tier and reportedly supports images, which listing review needs.
 - OpenRouter's `:free` models are the backup. Their reported daily limits are low, and available models change.
@@ -409,13 +409,13 @@ Limits: JPG or PNG, up to 5 MB, compressed in the app first. Images on a non-liv
 
 Two trade-offs you should know about:
 
-- **Free-tier data use:** Google's pricing page has indicated free-tier content may be used to improve its products, so **only listing text and images are sent, never seller personal data**.
+- **Free-tier data use:** Google's terms say free-tier content may be used to improve its products, and that people may read it, so **only public listing text and images are sent, never seller personal data**.
 - **Reliability at scale:** free limits can change and may run out as you grow. Plan to move to a low-cost paid tier if volume increases. The adapter makes that a small change.
 
 **Flow**
 
 1. `submit_product_for_review` validates the product, sets it to `pending_review` and queues a job.
-2. A database trigger calls the `moderate-product` Edge Function. A `pg_cron` job picks up any missed or failed jobs.
+2. The database wakes the `moderate-product` Edge Function through `pg_net`. A `pg_cron` job picks up any missed or failed jobs every 5 minutes.
 3. The function sends the listing and policy version, and requires a structured reply: `approve`, `suspicious` or `reject`, a reason code, and a short reason for the admin.
 4. A valid `approve` makes the product live. `suspicious` or `reject` sets it to `admin_review`, placing it in the admin portal's Product Review queue.
 5. The admin sees the listing and the AI's reason, then calls `admin_decide_product`. Approve makes it live. Reject requires a reason, which is shown to the seller. The seller can edit and resubmit, which starts a new AI review.

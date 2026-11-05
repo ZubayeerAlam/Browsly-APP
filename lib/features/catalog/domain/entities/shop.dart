@@ -6,6 +6,7 @@ class Shop {
     required this.deliveryFee,
     this.logoUrl,
     this.bannerUrl,
+    this.regionId,
     this.regionName,
     this.ratingAvg = 0,
     this.ratingCount = 0,
@@ -17,6 +18,7 @@ class Shop {
   final double deliveryFee;
   final String? logoUrl;
   final String? bannerUrl;
+  final String? regionId;
   final String? regionName;
   final double ratingAvg;
   final int ratingCount;

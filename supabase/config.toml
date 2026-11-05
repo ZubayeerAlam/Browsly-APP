@@ -69,3 +69,7 @@ secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
 
 [functions.delete-account]
 verify_jwt = true
+
+# Called by the database, and checks its own shared secret instead.
+[functions.moderate-product]
+verify_jwt = false

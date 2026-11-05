@@ -40,6 +40,9 @@ class CatalogRemoteDataSource {
           product_variants (id, options, price, compare_at_price, stock)
         ''')
         .eq('id', id)
+        // A seller's own product also has variants they have turned off.
+        .eq('product_variants.is_active', true)
+        .isFilter('deleted_at', null)
         .maybeSingle();
   }
 
@@ -48,7 +51,7 @@ class CatalogRemoteDataSource {
         .from('shops')
         .select('''
           id, name, description, logo_path, banner_path, delivery_fee,
-          rating_avg, rating_count, regions (name)
+          rating_avg, rating_count, region_id, regions (name)
         ''')
         .eq('id', id)
         .maybeSingle();

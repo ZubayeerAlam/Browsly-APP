@@ -132,6 +132,7 @@ abstract final class ShopModel {
       deliveryFee: _money(json['delivery_fee']),
       logoUrl: logoPath == null ? null : assetUrl(logoPath),
       bannerUrl: bannerPath == null ? null : assetUrl(bannerPath),
+      regionId: json['region_id'] as String?,
       regionName: region?['name'] as String?,
       ratingAvg: _money(json['rating_avg']),
       ratingCount: json['rating_count'] as int,

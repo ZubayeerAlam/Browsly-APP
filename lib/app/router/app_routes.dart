@@ -7,6 +7,14 @@ abstract final class AppRoutes {
 
   static const search = '/search';
   static const wishlist = '/wishlist';
+  static const myPosts = '/my-posts';
+  static const editShop = '/my-posts/shop';
+
+  /// The Post flow for an existing listing, returning to My Posts.
+  static String editListing(String id) => Uri(
+    path: post,
+    queryParameters: {'edit': id, 'from': myPosts},
+  ).toString();
 
   static String product(String id) => '/product/$id';
   static String shop(String id) => '/shop/$id';
@@ -43,6 +51,8 @@ abstract final class AppRoutes {
         path == post ||
         path == verifyPhone ||
         path == wishlist ||
+        path == myPosts ||
+        path.startsWith('$myPosts/') ||
         path == settings ||
         path.startsWith('$settings/');
   }

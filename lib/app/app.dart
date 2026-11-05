@@ -6,9 +6,11 @@ import '../core/config/app_config.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
 import '../features/catalog/domain/repositories/catalog_repository.dart';
+import '../features/listings/domain/repositories/listing_repository.dart';
 import '../features/profile/domain/repositories/address_repository.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
 import '../features/profile/presentation/providers/profile_provider.dart';
+import '../features/shop/domain/repositories/shop_repository.dart';
 import '../features/wishlist/domain/repositories/wishlist_repository.dart';
 import '../features/wishlist/presentation/providers/wishlist_provider.dart';
 import 'router/app_router.dart';
@@ -22,6 +24,8 @@ class BrowslyApp extends StatefulWidget {
     required this.addressRepository,
     required this.catalogRepository,
     required this.wishlistRepository,
+    required this.shopRepository,
+    required this.listingRepository,
     this.theme,
     super.key,
   });
@@ -32,6 +36,8 @@ class BrowslyApp extends StatefulWidget {
   final AddressRepository addressRepository;
   final CatalogRepository catalogRepository;
   final WishlistRepository wishlistRepository;
+  final ShopRepository shopRepository;
+  final ListingRepository listingRepository;
 
   /// Lets tests supply a theme that doesn't download a font.
   final ThemeData? theme;
@@ -76,6 +82,8 @@ class _BrowslyAppState extends State<BrowslyApp> {
         Provider<AddressRepository>.value(value: widget.addressRepository),
         Provider<CatalogRepository>.value(value: widget.catalogRepository),
         Provider<WishlistRepository>.value(value: widget.wishlistRepository),
+        Provider<ShopRepository>.value(value: widget.shopRepository),
+        Provider<ListingRepository>.value(value: widget.listingRepository),
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider<ProfileProvider>.value(value: _profileProvider),
         ChangeNotifierProvider<WishlistProvider>.value(

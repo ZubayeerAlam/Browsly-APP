@@ -21,6 +21,10 @@ import '../../features/catalog/presentation/screens/search_screen.dart';
 import '../../features/catalog/presentation/screens/shop_screen.dart';
 import '../../features/dashboard/presentation/providers/home_provider.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/listings/domain/repositories/listing_repository.dart';
+import '../../features/listings/presentation/providers/my_listings_provider.dart';
+import '../../features/listings/presentation/providers/product_form_provider.dart';
+import '../../features/listings/presentation/screens/my_posts_screen.dart';
 import '../../features/listings/presentation/screens/post_screen.dart';
 import '../../features/profile/domain/entities/address.dart';
 import '../../features/profile/domain/repositories/address_repository.dart';
@@ -32,6 +36,9 @@ import '../../features/profile/presentation/screens/addresses_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/sales/presentation/screens/sales_screen.dart';
+import '../../features/shop/domain/repositories/shop_repository.dart';
+import '../../features/shop/presentation/providers/shop_form_provider.dart';
+import '../../features/shop/presentation/screens/edit_shop_screen.dart';
 import '../../features/statistics/presentation/screens/statistics_screen.dart';
 import '../../features/wishlist/domain/repositories/wishlist_repository.dart';
 import '../../features/wishlist/presentation/providers/saved_products_provider.dart';
@@ -101,8 +108,41 @@ GoRouter createAppRouter(AuthProvider auth) {
       ),
       GoRoute(
         path: AppRoutes.post,
-        builder: (context, state) =>
-            PostScreen(backTo: _safeFrom(state.uri.queryParameters['from'])),
+        builder: (context, state) {
+          final editId = state.uri.queryParameters['edit'];
+          return ChangeNotifierProvider(
+            key: ValueKey(editId),
+            create: (context) => ProductFormProvider(
+              context.read<ListingRepository>(),
+              context.read<CatalogRepository>(),
+              context.read<ShopRepository>(),
+              editId: editId,
+            )..load(),
+            child: PostScreen(
+              backTo: _safeFrom(state.uri.queryParameters['from']),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.myPosts,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) =>
+              MyListingsProvider(context.read<ListingRepository>())..load(),
+          child: const MyPostsScreen(),
+        ),
+        routes: [
+          GoRoute(
+            path: 'shop',
+            builder: (context, state) => ChangeNotifierProvider(
+              create: (context) => ShopFormProvider(
+                context.read<ShopRepository>(),
+                context.read<AddressRepository>(),
+              )..load(),
+              child: const EditShopScreen(),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.search,

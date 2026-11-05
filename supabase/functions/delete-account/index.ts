@@ -3,6 +3,25 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.8";
 
 const AVATAR_BUCKET = "avatars";
+const SHOP_BUCKETS = ["product-images", "shop-assets"];
+const PAGE_SIZE = 500;
+
+type Admin = ReturnType<typeof createClient>;
+
+/** Removes every file in one folder. Throws if anything fails. */
+async function removeFolder(admin: Admin, bucket: string, folder: string) {
+  while (true) {
+    const { data: files, error: listError } = await admin.storage
+      .from(bucket)
+      .list(folder, { limit: PAGE_SIZE });
+    if (listError) throw listError;
+    if (files.length === 0) return;
+
+    const paths = files.map((file) => `${folder}/${file.name}`);
+    const { error } = await admin.storage.from(bucket).remove(paths);
+    if (error) throw error;
+  }
+}
 
 function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -33,21 +52,24 @@ Deno.serve(async (request) => {
     return jsonResponse(401, { code: "NOT_SIGNED_IN" });
   }
 
-  const { data: files, error: listError } = await admin.storage
-    .from(AVATAR_BUCKET)
-    .list(user.id);
-  if (listError) {
-    console.error("Could not list avatar files", listError.message);
-    return jsonResponse(500, { code: "DELETE_FAILED" });
-  }
+  try {
+    await removeFolder(admin, AVATAR_BUCKET, user.id);
 
-  if (files.length > 0) {
-    const paths = files.map((file) => `${user.id}/${file.name}`);
-    const { error } = await admin.storage.from(AVATAR_BUCKET).remove(paths);
-    if (error) {
-      console.error("Could not remove avatar files", error.message);
-      return jsonResponse(500, { code: "DELETE_FAILED" });
+    // Listing photos are public, so they must not outlive the account.
+    const { data: shop, error: shopError } = await admin
+      .from("shops")
+      .select("id")
+      .eq("seller_id", user.id)
+      .maybeSingle();
+    if (shopError) throw shopError;
+    if (shop) {
+      for (const bucket of SHOP_BUCKETS) {
+        await removeFolder(admin, bucket, shop.id as string);
+      }
     }
+  } catch (error) {
+    console.error("Could not remove files", error);
+    return jsonResponse(500, { code: "DELETE_FAILED" });
   }
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);

@@ -64,6 +64,14 @@ class _AccountMenu extends StatelessWidget {
       onSelected: context.go,
       itemBuilder: (context) => const [
         PopupMenuItem(
+          value: AppRoutes.myPosts,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.inventory_2_outlined),
+            title: Text('My Posts'),
+          ),
+        ),
+        PopupMenuItem(
           value: AppRoutes.wishlist,
           child: ListTile(
             contentPadding: EdgeInsets.zero,

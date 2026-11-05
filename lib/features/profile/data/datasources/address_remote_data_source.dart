@@ -19,7 +19,8 @@ class AddressRemoteDataSource {
         .select('id, name, parent_id')
         .eq('country_code', 'BD')
         .inFilter('level', ['division', 'district'])
-        .order('name');
+        // The client sorts newest-style (descending) unless told otherwise.
+        .order('name', ascending: true);
   }
 
   Future<void> insertAddress(Map<String, dynamic> values) {
