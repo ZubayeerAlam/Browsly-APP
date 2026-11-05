@@ -10,6 +10,9 @@ import '../../../../core/widgets/app_back_button.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../cart/presentation/widgets/order_totals.dart';
+import '../../../chat/presentation/widgets/open_chat.dart';
+import '../../../reviews/presentation/widgets/review_tile.dart';
+import '../../../reviews/presentation/widgets/write_review_sheet.dart';
 import '../../domain/entities/order.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/order_status_chip.dart';
@@ -228,7 +231,11 @@ class _GroupCard extends StatelessWidget {
                 : () => context.push(AppRoutes.shop(shopId)),
           ),
           const Divider(height: 1),
-          for (final item in group.items) _ItemRow(item: item),
+          for (final item in group.items)
+            _ItemRow(
+              item: item,
+              canReview: group.status == OrderStatus.completed,
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Text(
@@ -240,6 +247,16 @@ class _GroupCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: OrderTimeline(status: group.status, history: group.history),
           ),
+          if (shopId != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: OutlinedButton.icon(
+                onPressed: () =>
+                    openChat(context, (chats) => chats.startForOrder(group.id)),
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                label: const Text('Chat with seller'),
+              ),
+            ),
           if (group.status.canCancel)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -259,9 +276,22 @@ class _GroupCard extends StatelessWidget {
 }
 
 class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item});
+  const _ItemRow({required this.item, required this.canReview});
 
   final OrderItem item;
+
+  /// Whether the order is complete. It also needs to be still reviewable.
+  final bool canReview;
+
+  Future<void> _review(BuildContext context) async {
+    final provider = context.read<OrderDetailProvider>();
+    final saved = await showWriteReviewSheet(
+      context,
+      orderItemId: item.id,
+      productTitle: item.title,
+    );
+    if (saved) await provider.load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +332,17 @@ class _ItemRow extends StatelessWidget {
                     ].join(' · '),
                     style: theme.textTheme.bodySmall,
                   ),
+                  if (item.myRating != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: StarRow(rating: item.myRating!),
+                    )
+                  else if (canReview && productId != null)
+                    TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      onPressed: () => _review(context),
+                      child: const Text('Write a review'),
+                    ),
                 ],
               ),
             ),

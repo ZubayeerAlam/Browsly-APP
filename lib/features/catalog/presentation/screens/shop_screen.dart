@@ -8,6 +8,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_back_button.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/state_views.dart';
+import '../../../reports/presentation/widgets/report_sheet.dart';
 import '../../domain/entities/shop.dart';
 import '../providers/product_list_provider.dart';
 import '../providers/shop_provider.dart';
@@ -30,6 +31,19 @@ class ShopScreen extends StatelessWidget {
         leading: const AppBackButton(fallback: AppRoutes.products),
         title: Text(shop?.name ?? 'Shop'),
         actions: [
+          if (shop != null)
+            Builder(
+              builder: (buttonContext) => IconButton(
+                tooltip: 'Report this shop',
+                icon: const Icon(Icons.flag_outlined),
+                onPressed: () => showReportSheet(
+                  buttonContext,
+                  targetType: ReportTarget.shop,
+                  targetId: shop.id,
+                  title: 'Report this shop',
+                ),
+              ),
+            ),
           if (shop != null)
             FilterButton(
               count: products.filters.refinementCount,

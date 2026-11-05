@@ -15,6 +15,8 @@ abstract final class AppRoutes {
   static const checkoutAddressForm = '/checkout-address';
   static const orders = '/orders';
   static const commission = '/commission';
+  static const chats = '/chats';
+  static const notifications = '/notifications';
 
   /// Checkout for one of this item, leaving the cart as it is.
   static String buyNow(String variantId) => '$checkout/$variantId';
@@ -22,6 +24,8 @@ abstract final class AppRoutes {
 
   /// One seller's part of an order. Under Sales for the seller.
   static String sale(String id) => '/sale/$id';
+  static String chat(String id) => '$chats/$id';
+  static String reviews(String productId) => '/product/$productId/reviews';
 
   /// An order straight after checkout, with the success message.
   static String placedOrder(String id) =>
@@ -67,7 +71,10 @@ abstract final class AppRoutes {
 
   /// Screens guests cannot open.
   static bool requiresSignIn(String path) {
-    return path == cart ||
+    return path == chats ||
+        path.startsWith('$chats/') ||
+        path == notifications ||
+        path == cart ||
         path == checkout ||
         path.startsWith('$checkout/') ||
         path == checkoutAddressForm ||
@@ -94,6 +101,7 @@ abstract final class AppRoutes {
     if (path == checkout) return cart;
     if (path.startsWith('$checkout/')) return products;
     if (path.startsWith('$orders/')) return orders;
+    if (path.startsWith('$chats/')) return chats;
     if (path == commission || path.startsWith('/sale/')) return sales;
     if (path == post) {
       final from = location.queryParameters['from'];

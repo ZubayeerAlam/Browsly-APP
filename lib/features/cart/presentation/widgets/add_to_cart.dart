@@ -7,6 +7,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/buying_errors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../statistics/domain/entities/seller_stats.dart';
+import '../../../statistics/domain/repositories/statistics_repository.dart';
 import '../providers/cart_provider.dart';
 
 /// Sends a guest to sign in, and back here afterwards. Returns true if it did.
@@ -53,6 +55,12 @@ class CardCartButton extends StatelessWidget {
     if (failure is ServerFailure && failure.code == 'VARIANT_REQUIRED') {
       await context.push(AppRoutes.product(productId));
       return;
+    }
+    if (failure == null) {
+      context.read<StatisticsRepository>().track(
+        AnalyticsEvent.cartAdd,
+        productId,
+      );
     }
     showCartResult(context, failure);
   }

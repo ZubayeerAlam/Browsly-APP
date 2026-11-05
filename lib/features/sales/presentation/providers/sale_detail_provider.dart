@@ -1,14 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/buying_errors.dart';
 import '../../../../core/state/view_state.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 import '../../../orders/domain/entities/order.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/repositories/sales_repository.dart';
 
 class SaleDetailProvider extends ChangeNotifier {
-  SaleDetailProvider(this._repository, this.saleId);
+  SaleDetailProvider(
+    this._repository,
+    this.saleId, {
+    Stream<AppNotification>? updates,
+  }) {
+    _updates = updates?.listen((notification) {
+      if (notification.groupId == saleId) load();
+    });
+  }
+
+  /// Reloads when a notification says this may have changed.
+  StreamSubscription<AppNotification>? _updates;
 
   final SalesRepository _repository;
   final String saleId;
@@ -65,6 +79,7 @@ class SaleDetailProvider extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _updates?.cancel();
     super.dispose();
   }
 }

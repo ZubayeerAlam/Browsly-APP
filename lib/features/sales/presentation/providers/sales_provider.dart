@@ -1,13 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/state/view_state.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/repositories/sales_repository.dart';
 
 /// The seller's orders on the Sales tab, one status at a time.
 class SalesProvider extends ChangeNotifier {
-  SalesProvider(this._repository);
+  SalesProvider(this._repository, {Stream<AppNotification>? updates}) {
+    _updates = updates?.listen((notification) {
+      if (notification.groupId != null) load(keepList: true);
+    });
+  }
+
+  /// Reloads when a notification says this may have changed.
+  StreamSubscription<AppNotification>? _updates;
 
   final SalesRepository _repository;
 
@@ -78,6 +88,7 @@ class SalesProvider extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _updates?.cancel();
     super.dispose();
   }
 }

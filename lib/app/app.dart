@@ -12,7 +12,13 @@ import '../features/catalog/domain/repositories/catalog_repository.dart';
 import '../features/listings/domain/repositories/listing_repository.dart';
 import '../features/orders/domain/repositories/order_repository.dart';
 import '../features/profile/domain/repositories/address_repository.dart';
+import '../features/chat/domain/repositories/chat_repository.dart';
+import '../features/notifications/domain/repositories/notification_repository.dart';
+import '../features/notifications/presentation/providers/notifications_provider.dart';
+import '../features/reports/domain/repositories/report_repository.dart';
+import '../features/reviews/domain/repositories/review_repository.dart';
 import '../features/sales/domain/repositories/sales_repository.dart';
+import '../features/statistics/domain/repositories/statistics_repository.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
 import '../features/profile/presentation/providers/profile_provider.dart';
 import '../features/shop/domain/repositories/shop_repository.dart';
@@ -35,6 +41,11 @@ class BrowslyApp extends StatefulWidget {
     required this.cartRepository,
     required this.orderRepository,
     required this.salesRepository,
+    required this.chatRepository,
+    required this.notificationRepository,
+    required this.reviewRepository,
+    required this.reportRepository,
+    required this.statisticsRepository,
     this.theme,
     super.key,
   });
@@ -50,6 +61,11 @@ class BrowslyApp extends StatefulWidget {
   final CartRepository cartRepository;
   final OrderRepository orderRepository;
   final SalesRepository salesRepository;
+  final ChatRepository chatRepository;
+  final NotificationRepository notificationRepository;
+  final ReviewRepository reviewRepository;
+  final ReportRepository reportRepository;
+  final StatisticsRepository statisticsRepository;
 
   /// Lets tests supply a theme that doesn't download a font.
   final ThemeData? theme;
@@ -63,6 +79,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
   late final ProfileProvider _profileProvider;
   late final WishlistProvider _wishlistProvider;
   late final CartProvider _cartProvider;
+  late final NotificationsProvider _notificationsProvider;
   late final GoRouter _router;
   late final AppBackDispatcher _backDispatcher;
 
@@ -76,6 +93,10 @@ class _BrowslyAppState extends State<BrowslyApp> {
       _authProvider,
     );
     _cartProvider = CartProvider(widget.cartRepository, _authProvider);
+    _notificationsProvider = NotificationsProvider(
+      widget.notificationRepository,
+      _authProvider,
+    );
     _router = createAppRouter(_authProvider);
     _backDispatcher = AppBackDispatcher(_router);
   }
@@ -83,6 +104,7 @@ class _BrowslyAppState extends State<BrowslyApp> {
   @override
   void dispose() {
     _router.dispose();
+    _notificationsProvider.dispose();
     _cartProvider.dispose();
     _wishlistProvider.dispose();
     _profileProvider.dispose();
@@ -104,8 +126,20 @@ class _BrowslyAppState extends State<BrowslyApp> {
         Provider<CartRepository>.value(value: widget.cartRepository),
         Provider<OrderRepository>.value(value: widget.orderRepository),
         Provider<SalesRepository>.value(value: widget.salesRepository),
+        Provider<ChatRepository>.value(value: widget.chatRepository),
+        Provider<NotificationRepository>.value(
+          value: widget.notificationRepository,
+        ),
+        Provider<ReviewRepository>.value(value: widget.reviewRepository),
+        Provider<ReportRepository>.value(value: widget.reportRepository),
+        Provider<StatisticsRepository>.value(
+          value: widget.statisticsRepository,
+        ),
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider<CartProvider>.value(value: _cartProvider),
+        ChangeNotifierProvider<NotificationsProvider>.value(
+          value: _notificationsProvider,
+        ),
         ChangeNotifierProvider<ProfileProvider>.value(value: _profileProvider),
         ChangeNotifierProvider<WishlistProvider>.value(
           value: _wishlistProvider,

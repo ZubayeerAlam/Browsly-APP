@@ -73,3 +73,7 @@ verify_jwt = true
 # Called by the database, and checks its own shared secret instead.
 [functions.moderate-product]
 verify_jwt = false
+
+# Called by the database, and checks its own shared secret instead.
+[functions.send-push]
+verify_jwt = false

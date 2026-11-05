@@ -1,14 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/selling_errors.dart';
 import '../../../../core/state/view_state.dart';
+import '../../../notifications/domain/entities/app_notification.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listing_repository.dart';
 
 /// The seller's listings on My Posts, one tab at a time.
 class MyListingsProvider extends ChangeNotifier {
-  MyListingsProvider(this._repository);
+  MyListingsProvider(this._repository, {Stream<AppNotification>? updates}) {
+    _updates = updates?.listen((notification) {
+      if (notification.type == AppNotificationType.listingLive ||
+          notification.type == AppNotificationType.listingRejected) {
+        load(keepList: true);
+      }
+    });
+  }
+
+  /// Reloads when a notification says this may have changed.
+  StreamSubscription<AppNotification>? _updates;
 
   final ListingRepository _repository;
 
@@ -100,6 +113,7 @@ class MyListingsProvider extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _updates?.cancel();
     super.dispose();
   }
 }

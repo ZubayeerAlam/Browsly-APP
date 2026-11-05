@@ -109,7 +109,7 @@ Priority: **M** = must have, **S** = should have if time allows.
 | E1 | Sales | Orders by status; move through Pending → Packaging → Out for delivery → Complete; cancel; mark failed | M |
 | E2 | Cash collection | Marking an order Complete records the cash as collected and charges the 1% commission | M |
 | E3 | Commission | Balance, per-order charges, settlement history | M |
-| F1 | Statistics | Views, clicks, click rate, orders, revenue, top products | M |
+| F1 | Statistics | Views, clicks, orders per 100 views, orders, revenue, top products | M |
 | F2 | Dashboard summary | Today's orders, sales, stock alerts, amount owed | M |
 | G1 | Reviews | Verified buyers only, one per order item, after the order is Complete | M |
 | G2 | Reports | Report a product, shop, review or chat message | M |
@@ -331,7 +331,7 @@ The shipping address is stored on each seller group, and sellers cannot read `or
 |---|---|
 | `reviews` | order_item_id **unique**, product_id, buyer_id, `rating` 1–5, comment, status (visible, hidden) |
 | `analytics_events` | event_type, product_id, shop_id, user_id, session_id, created_at. Written only through an RPC |
-| `product_daily_stats` | PK (product_id, date); views, clicks, cart_adds, orders, units, revenue |
+| `product_daily_stats` | PK (product_id, day); views, clicks, cart_adds. Orders and sales are read live from the order tables |
 | `notifications` | user_id, type, title, body, data, read_at |
 | `device_tokens` | user_id, token unique, platform |
 | `conversations` | buyer_id, shop_id, product_id, last_message_at, buyer_last_read_at, seller_last_read_at; unique (buyer_id, shop_id, product_id) |

@@ -13,6 +13,22 @@ import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/cart/domain/repositories/cart_repository.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/catalog/domain/entities/product_filters.dart';
+import '../../features/chat/domain/repositories/chat_repository.dart';
+import '../../features/chat/presentation/providers/chat_room_provider.dart';
+import '../../features/chat/presentation/providers/conversations_provider.dart';
+import '../../features/chat/presentation/screens/chat_room_screen.dart';
+import '../../features/chat/presentation/screens/conversations_screen.dart';
+import '../../features/notifications/domain/repositories/notification_repository.dart';
+import '../../features/notifications/presentation/providers/notification_list_provider.dart';
+import '../../features/notifications/presentation/providers/notifications_provider.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/reviews/domain/repositories/review_repository.dart';
+import '../../features/reviews/presentation/providers/reviews_provider.dart';
+import '../../features/reviews/presentation/screens/reviews_screen.dart';
+import '../../features/statistics/domain/entities/seller_stats.dart';
+import '../../features/statistics/domain/repositories/statistics_repository.dart';
+import '../../features/statistics/presentation/providers/seller_dashboard_provider.dart';
+import '../../features/statistics/presentation/providers/statistics_provider.dart';
 import '../../features/catalog/domain/repositories/catalog_repository.dart';
 import '../../features/catalog/presentation/providers/product_detail_provider.dart';
 import '../../features/catalog/presentation/providers/product_list_provider.dart';
@@ -89,9 +105,19 @@ GoRouter createAppRouter(AuthProvider auth) {
             routes: [
               GoRoute(
                 path: AppRoutes.dashboard,
-                builder: (context, state) => ChangeNotifierProvider(
-                  create: (context) =>
-                      HomeProvider(context.read<CatalogRepository>())..load(),
+                builder: (context, state) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(
+                      create: (context) =>
+                          HomeProvider(context.read<CatalogRepository>())
+                            ..load(),
+                    ),
+                    ChangeNotifierProvider(
+                      create: (context) => SellerDashboardProvider(
+                        context.read<StatisticsRepository>(),
+                      )..load(),
+                    ),
+                  ],
                   child: const DashboardScreen(),
                 ),
               ),
@@ -122,14 +148,28 @@ GoRouter createAppRouter(AuthProvider auth) {
               GoRoute(
                 path: AppRoutes.sales,
                 builder: (context, state) => ChangeNotifierProvider(
-                  create: (context) =>
-                      SalesProvider(context.read<SalesRepository>())..load(),
+                  create: (context) => SalesProvider(
+                    context.read<SalesRepository>(),
+                    updates: context.read<NotificationsProvider>().incoming,
+                  )..load(),
                   child: const SalesScreen(),
                 ),
               ),
             ],
           ),
-          _tab(AppRoutes.statistics, const StatisticsScreen()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.statistics,
+                builder: (context, state) => ChangeNotifierProvider(
+                  create: (context) =>
+                      StatisticsProvider(context.read<StatisticsRepository>())
+                        ..load(),
+                  child: const StatisticsScreen(),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
@@ -153,8 +193,10 @@ GoRouter createAppRouter(AuthProvider auth) {
       GoRoute(
         path: AppRoutes.myPosts,
         builder: (context, state) => ChangeNotifierProvider(
-          create: (context) =>
-              MyListingsProvider(context.read<ListingRepository>())..load(),
+          create: (context) => MyListingsProvider(
+            context.read<ListingRepository>(),
+            updates: context.read<NotificationsProvider>().incoming,
+          )..load(),
           child: const MyPostsScreen(),
         ),
         routes: [
@@ -182,12 +224,40 @@ GoRouter createAppRouter(AuthProvider auth) {
         path: '/product/:id',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
+          return MultiProvider(
+            key: ValueKey(id),
+            providers: [
+              ChangeNotifierProvider(
+                create: (context) {
+                  context.read<StatisticsRepository>().track(
+                    AnalyticsEvent.view,
+                    id,
+                  );
+                  return ProductDetailProvider(
+                    context.read<CatalogRepository>(),
+                    id,
+                  )..load();
+                },
+              ),
+              ChangeNotifierProvider(
+                create: (context) =>
+                    ReviewsProvider(context.read<ReviewRepository>(), id)
+                      ..load(),
+              ),
+            ],
+            child: const ProductDetailScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/product/:id/reviews',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
           return ChangeNotifierProvider(
             key: ValueKey(id),
             create: (context) =>
-                ProductDetailProvider(context.read<CatalogRepository>(), id)
-                  ..load(),
-            child: const ProductDetailScreen(),
+                ReviewsProvider(context.read<ReviewRepository>(), id)..load(),
+            child: const ReviewsScreen(),
           );
         },
       ),
@@ -252,8 +322,11 @@ GoRouter createAppRouter(AuthProvider auth) {
           final id = state.pathParameters['id']!;
           return ChangeNotifierProvider(
             key: ValueKey(id),
-            create: (context) =>
-                SaleDetailProvider(context.read<SalesRepository>(), id)..load(),
+            create: (context) => SaleDetailProvider(
+              context.read<SalesRepository>(),
+              id,
+              updates: context.read<NotificationsProvider>().incoming,
+            )..load(),
             child: const SaleDetailScreen(),
           );
         },
@@ -264,6 +337,45 @@ GoRouter createAppRouter(AuthProvider auth) {
           create: (context) =>
               CommissionProvider(context.read<SalesRepository>())..load(),
           child: const CommissionScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.chats,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => ConversationsProvider(
+            context.read<ChatRepository>(),
+            updates: context.read<NotificationsProvider>().incoming,
+          )..load(),
+          child: const ConversationsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.chats}/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ChangeNotifierProvider(
+            key: ValueKey(id),
+            create: (context) => ChatRoomProvider(
+              context.read<ChatRepository>(),
+              id,
+              context.read<AuthProvider>().user?.id,
+            )..load(),
+            child: const ChatRoomScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) {
+            final notifications = context.read<NotificationsProvider>();
+            return NotificationListProvider(
+              context.read<NotificationRepository>(),
+              updates: notifications.incoming,
+              onRead: notifications.refreshCounts,
+            )..load();
+          },
+          child: const NotificationsScreen(),
         ),
       ),
       GoRoute(
@@ -280,9 +392,11 @@ GoRouter createAppRouter(AuthProvider auth) {
           final id = state.pathParameters['id']!;
           return ChangeNotifierProvider(
             key: ValueKey(id),
-            create: (context) =>
-                OrderDetailProvider(context.read<OrderRepository>(), id)
-                  ..load(),
+            create: (context) => OrderDetailProvider(
+              context.read<OrderRepository>(),
+              id,
+              updates: context.read<NotificationsProvider>().incoming,
+            )..load(),
             child: OrderDetailScreen(
               justPlaced: state.uri.queryParameters['placed'] == '1',
             ),
@@ -350,12 +464,6 @@ GoRouter createAppRouter(AuthProvider auth) {
         ],
       ),
     ],
-  );
-}
-
-StatefulShellBranch _tab(String path, Widget screen) {
-  return StatefulShellBranch(
-    routes: [GoRoute(path: path, builder: (context, state) => screen)],
   );
 }
 

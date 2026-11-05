@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/busy_button.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../cart/presentation/widgets/order_totals.dart';
+import '../../../chat/presentation/widgets/open_chat.dart';
 import '../../../orders/domain/entities/order.dart';
 import '../../../orders/presentation/widgets/order_status_chip.dart';
 import '../../../orders/presentation/widgets/order_timeline.dart';
@@ -99,6 +100,13 @@ class _SaleBody extends StatelessWidget {
         Text('Buyer', style: sectionStyle),
         const SizedBox(height: 8),
         _BuyerCard(buyer: sale.buyer),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () =>
+              openChat(context, (chats) => chats.startForOrder(sale.id)),
+          icon: const Icon(Icons.chat_bubble_outline_rounded),
+          label: const Text('Chat with buyer'),
+        ),
         const SizedBox(height: 16),
         Text('Items', style: sectionStyle),
         const SizedBox(height: 8),

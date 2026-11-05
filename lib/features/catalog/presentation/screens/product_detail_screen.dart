@@ -14,6 +14,12 @@ import '../../../../core/widgets/state_views.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../cart/presentation/widgets/add_to_cart.dart';
 import '../../../cart/presentation/widgets/cart_icon_button.dart';
+import '../../../chat/presentation/widgets/open_chat.dart';
+import '../../../reports/presentation/widgets/report_sheet.dart';
+import '../../../reviews/presentation/providers/reviews_provider.dart';
+import '../../../reviews/presentation/widgets/review_tile.dart';
+import '../../../statistics/domain/entities/seller_stats.dart';
+import '../../../statistics/domain/repositories/statistics_repository.dart';
 import '../../../wishlist/presentation/widgets/wishlist_button.dart';
 import '../../domain/entities/product.dart';
 import '../providers/product_detail_provider.dart';
@@ -40,6 +46,18 @@ class ProductDetailScreen extends StatelessWidget {
               ),
             ),
             WishlistButton(productId: product.id),
+            Builder(
+              builder: (buttonContext) => IconButton(
+                tooltip: 'Report this product',
+                icon: const Icon(Icons.flag_outlined),
+                onPressed: () => showReportSheet(
+                  buttonContext,
+                  targetType: ReportTarget.product,
+                  targetId: product.id,
+                  title: 'Report this product',
+                ),
+              ),
+            ),
           ],
           const CartIconButton(),
           const SizedBox(width: 8),
@@ -63,7 +81,7 @@ class ProductDetailScreen extends StatelessWidget {
       },
       bottomNavigationBar: product == null
           ? null
-          : _BuyBar(variant: provider.selected),
+          : _BuyBar(productId: product.id, variant: provider.selected),
     );
   }
 
@@ -180,13 +198,15 @@ class _ProductBody extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 16),
-              _ShopCard(shop: product.shop),
+              _ShopCard(shop: product.shop, productId: product.id),
               if (product.description.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text('Description', style: sectionStyle),
                 const SizedBox(height: 4),
                 Text(product.description),
               ],
+              const SizedBox(height: 16),
+              _ReviewsSection(productId: product.id),
             ],
           ),
         ),
@@ -320,9 +340,10 @@ class _StockLabel extends StatelessWidget {
 }
 
 class _ShopCard extends StatelessWidget {
-  const _ShopCard({required this.shop});
+  const _ShopCard({required this.shop, required this.productId});
 
   final ProductShop shop;
+  final String productId;
 
   @override
   Widget build(BuildContext context) {
@@ -383,7 +404,13 @@ class _ShopCard extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _showComingSoon(context, 'Chat with seller'),
+                onPressed: () {
+                  if (sendGuestToSignIn(context)) return;
+                  openChat(
+                    context,
+                    (chats) => chats.startForProduct(productId),
+                  );
+                },
                 icon: const Icon(Icons.chat_bubble_outline_rounded),
                 label: const Text('Chat with seller'),
               ),
@@ -396,14 +423,22 @@ class _ShopCard extends StatelessWidget {
 }
 
 class _BuyBar extends StatelessWidget {
-  const _BuyBar({required this.variant});
+  const _BuyBar({required this.productId, required this.variant});
 
+  final String productId;
   final ProductVariant? variant;
 
   Future<void> _addToCart(BuildContext context, ProductVariant variant) async {
     if (sendGuestToSignIn(context)) return;
     final failure = await context.read<CartProvider>().addVariant(variant.id);
-    if (context.mounted) showCartResult(context, failure);
+    if (!context.mounted) return;
+    if (failure == null) {
+      context.read<StatisticsRepository>().track(
+        AnalyticsEvent.cartAdd,
+        productId,
+      );
+    }
+    showCartResult(context, failure);
   }
 
   void _buyNow(BuildContext context, ProductVariant variant) {
@@ -450,8 +485,39 @@ class _BuyBar extends StatelessWidget {
   }
 }
 
-void _showComingSoon(BuildContext context, String feature) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
+/// The newest few reviews, with a way to see the rest.
+class _ReviewsSection extends StatelessWidget {
+  const _ReviewsSection({required this.productId});
+
+  static const _preview = 3;
+
+  final String productId;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final reviews = context.watch<ReviewsProvider>().state.data ?? const [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Reviews',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (reviews.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: Text('No written reviews yet.'),
+          ),
+        for (final review in reviews.take(_preview)) ReviewTile(review: review),
+        if (reviews.length > _preview)
+          TextButton(
+            onPressed: () => context.push(AppRoutes.reviews(productId)),
+            child: const Text('See all reviews'),
+          ),
+      ],
+    );
+  }
 }

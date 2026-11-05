@@ -24,7 +24,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Step 3: Selling and AI review (in progress: needs your Gemini key and policy approval)
 - [x] Step 4: Buying
 - [x] Step 5: Sales and commission
-- [ ] Step 6: Chat and trust
+- [ ] Step 6: Chat and trust (in progress: needs your Firebase project for push)
 - [ ] Step 7: Admin panel
 - [ ] Step 8: Launch prep
 
@@ -136,21 +136,24 @@ Full details are in [plan.md](plan.md).
 
 ## Step 6: Chat and trust
 
-- [ ] `conversations` and `messages` tables, RLS and tests
-- [ ] Chat RPCs, Realtime, conversation list, chat room and unread count
-- [ ] Connect "Chat with seller" on product details (it says "coming soon" for now), and add it to order screens
-- [ ] Chat and notification icons in the Dashboard top bar
-- [ ] Report a message
-- [ ] FCM setup, device tokens, `send-push` and notification centre
-- [ ] Tell sellers about new and cancelled orders
-- [ ] Tell sellers the review result, and refresh My Posts when it arrives (today it needs a pull to refresh)
-- [ ] `track_event` and app tracking (view = details opened, click = card tapped)
-- [ ] Nightly rollup and `get_seller_stats`
-- [ ] Statistics and Dashboard with real data (clicks, sales, views and rating cards, View Insights)
-- [ ] Reviews and rating updates, including the review list on product details
-- [ ] Reports
+- [x] `conversations` and `messages` tables, RLS and tests
+- [x] Chat RPCs, Realtime, conversation list, chat room and unread count
+- [x] Connect "Chat with seller" on product details, and add it to order screens
+- [x] Chat and notification icons in the Dashboard top bar
+- [x] Report a message (press and hold it)
+- [x] Notification centre, device tokens table and `send-push` server function
+- [ ] Push notifications on phones: Firebase setup, app packages and sending device tokens (**needs your Firebase project**)
+- [x] Tell sellers about new and cancelled orders
+- [x] Tell sellers the review result, and refresh My Posts when it arrives
+- [x] `track_event` and app tracking (view = details opened, click = card tapped)
+- [x] Nightly rollup and `get_seller_stats`
+- [x] Statistics and Dashboard with real data (clicks, sales, views and rating cards, View Insights)
+- [x] Reviews and rating updates, including the review list on product details
+- [x] Reports (product, shop, review and message; the admin screen is Step 7)
 
 **Done when:** chat works in real time between two devices and only its two participants can read it, push arrives, and Statistics show real numbers.
+
+**Status:** in progress. Chat and in-app notifications work live on the iOS Simulator against a second test account, and the database tests prove only the two people in a chat can read it. Not yet done: push notifications, which need your Firebase project, and a chat between two real devices. The nightly rollup has only run in tests, not on its nightly schedule.
 
 ## Step 7: Admin panel
 
@@ -169,7 +172,7 @@ Full details are in [plan.md](plan.md).
 - [ ] Set the production Google redirect URL, and use https for the production server
 - [ ] Complete RLS audit and secret scan
 - [ ] Daily clean-up of photo files that no listing uses
-- [ ] Set production secrets: `project_url` and `moderation_secret` in the Vault, and `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on the function. Never set `MODERATION_PROVIDER` there
+- [ ] Set production secrets: `project_url`, `moderation_secret` and `push_secret` in the Vault, `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on `moderate-product`, and `PUSH_SECRET` and `FIREBASE_SERVICE_ACCOUNT` on `send-push`. Never set `MODERATION_PROVIDER` there
 - [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds
 - [ ] Terms, privacy policy, seller terms and listing policy (legal review)
 - [ ] Put Browsly's real bKash and bank details on the Commission screen

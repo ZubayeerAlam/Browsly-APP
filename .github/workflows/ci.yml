@@ -42,3 +42,4 @@ jobs:
         with:
           deno-version: v2.1.4
       - run: deno test --allow-env --no-lock supabase/functions/moderate-product/moderation_test.ts
+      - run: deno test --allow-env --no-lock supabase/functions/send-push/push_test.ts

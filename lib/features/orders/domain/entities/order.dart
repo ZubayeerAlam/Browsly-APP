@@ -103,12 +103,16 @@ class OrderItem {
     this.productId,
     this.variantLabel,
     this.imageUrl,
+    this.myRating,
   });
 
   final String id;
 
   /// Null if the seller's account has since been deleted.
   final String? productId;
+
+  /// The buyer's own review, if they have written one.
+  final int? myRating;
   final String title;
   final String? variantLabel;
   final String? imageUrl;

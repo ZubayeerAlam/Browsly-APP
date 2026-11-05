@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../cart/presentation/widgets/add_to_cart.dart';
+import '../../../statistics/domain/entities/seller_stats.dart';
+import '../../../statistics/domain/repositories/statistics_repository.dart';
 import '../../../wishlist/presentation/widgets/wishlist_button.dart';
 import '../../domain/entities/product.dart';
 import 'rating_label.dart';
@@ -28,7 +31,13 @@ class ProductCard extends StatelessWidget {
       child: Stack(
         children: [
           InkWell(
-            onTap: () => context.push(AppRoutes.product(product.id)),
+            onTap: () {
+              context.read<StatisticsRepository>().track(
+                AnalyticsEvent.click,
+                product.id,
+              );
+              context.push(AppRoutes.product(product.id));
+            },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

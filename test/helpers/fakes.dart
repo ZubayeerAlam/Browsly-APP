@@ -14,8 +14,12 @@ import 'package:browsly_app/features/catalog/domain/entities/product.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product_filters.dart';
 import 'package:browsly_app/features/catalog/domain/entities/shop.dart';
 import 'package:browsly_app/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:browsly_app/features/chat/domain/entities/chat.dart';
+import 'package:browsly_app/features/chat/domain/repositories/chat_repository.dart';
 import 'package:browsly_app/features/listings/domain/entities/listing.dart';
 import 'package:browsly_app/features/listings/domain/repositories/listing_repository.dart';
+import 'package:browsly_app/features/notifications/domain/entities/app_notification.dart';
+import 'package:browsly_app/features/notifications/domain/repositories/notification_repository.dart';
 import 'package:browsly_app/features/orders/domain/entities/order.dart';
 import 'package:browsly_app/features/orders/domain/repositories/order_repository.dart';
 import 'package:browsly_app/features/profile/domain/entities/address.dart';
@@ -23,9 +27,14 @@ import 'package:browsly_app/features/profile/domain/entities/profile.dart';
 import 'package:browsly_app/features/profile/domain/entities/region.dart';
 import 'package:browsly_app/features/profile/domain/repositories/address_repository.dart';
 import 'package:browsly_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:browsly_app/features/reports/domain/repositories/report_repository.dart';
+import 'package:browsly_app/features/reviews/domain/entities/review.dart';
+import 'package:browsly_app/features/reviews/domain/repositories/review_repository.dart';
 import 'package:browsly_app/features/sales/domain/entities/sale.dart';
 import 'package:browsly_app/features/sales/domain/repositories/sales_repository.dart';
 import 'package:browsly_app/features/shop/domain/repositories/shop_repository.dart';
+import 'package:browsly_app/features/statistics/domain/entities/seller_stats.dart';
+import 'package:browsly_app/features/statistics/domain/repositories/statistics_repository.dart';
 import 'package:browsly_app/features/wishlist/domain/repositories/wishlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -894,6 +903,182 @@ class FakeSalesRepository implements SalesRepository {
   }
 }
 
+class FakeChatRepository implements ChatRepository {
+  List<Conversation> conversations = [];
+  ChatHeader? header = const ChatHeader(
+    id: 'chat-1',
+    otherName: 'Test Shop',
+    productId: '1',
+    productTitle: 'Test Lamp',
+    productPrice: 1000,
+  );
+  List<ChatMessage> messages = [];
+  AppFailure? failWith;
+  final List<String> calls = [];
+  final _incoming = StreamController<ChatMessage>.broadcast();
+
+  void _maybeFail() {
+    final failure = failWith;
+    if (failure != null) throw failure;
+  }
+
+  /// A message arriving live from the other person.
+  void receive(ChatMessage message) => _incoming.add(message);
+
+  @override
+  Future<ConversationPage> getConversations({
+    ConversationCursor? cursor,
+    int limit = 20,
+  }) async {
+    _maybeFail();
+    return ConversationPage(items: conversations);
+  }
+
+  @override
+  Future<ChatHeader?> getHeader(String conversationId) async {
+    _maybeFail();
+    return header;
+  }
+
+  @override
+  Future<List<ChatMessage>> getMessages(
+    String conversationId, {
+    DateTime? before,
+    int limit = 30,
+  }) async {
+    _maybeFail();
+    return before == null ? messages : [];
+  }
+
+  @override
+  Future<ChatMessage> send(String conversationId, String body) async {
+    calls.add('send:$body');
+    _maybeFail();
+    return ChatMessage(
+      id: 'sent-${calls.length}',
+      conversationId: conversationId,
+      senderId: verifiedUser.id,
+      body: body,
+      createdAt: DateTime(2026, 11, 6, 12, calls.length),
+    );
+  }
+
+  @override
+  Future<void> markRead(String conversationId) async {
+    calls.add('markRead');
+  }
+
+  @override
+  Future<String> startForProduct(String productId) async {
+    calls.add('startForProduct:$productId');
+    _maybeFail();
+    return 'chat-1';
+  }
+
+  @override
+  Future<String> startForOrder(String groupId) async {
+    calls.add('startForOrder:$groupId');
+    _maybeFail();
+    return 'chat-1';
+  }
+
+  @override
+  Stream<ChatMessage> watchMessages(String conversationId) => _incoming.stream;
+}
+
+class FakeNotificationRepository implements NotificationRepository {
+  List<AppNotification> items = [];
+  UnreadCounts counts = const UnreadCounts();
+  final List<String?> markedRead = [];
+  final _incoming = StreamController<AppNotification>.broadcast();
+
+  /// A notification arriving live.
+  void receive(AppNotification notification) => _incoming.add(notification);
+
+  @override
+  Future<NotificationPage> getPage({DateTime? before, int limit = 20}) async {
+    return NotificationPage(items: before == null ? items : const []);
+  }
+
+  @override
+  Future<UnreadCounts> getUnreadCounts() async => counts;
+
+  @override
+  Future<void> markRead(String? id) async {
+    markedRead.add(id);
+  }
+
+  @override
+  Stream<AppNotification> watch(String userId) => _incoming.stream;
+}
+
+class FakeReviewRepository implements ReviewRepository {
+  List<Review> reviews = [];
+  AppFailure? failWith;
+  final List<String> submitted = [];
+
+  @override
+  Future<ReviewPage> getReviews(
+    String productId, {
+    ReviewCursor? cursor,
+    int limit = 20,
+  }) async {
+    return ReviewPage(items: cursor == null ? reviews : const []);
+  }
+
+  @override
+  Future<void> submit(String orderItemId, int rating, {String? comment}) async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    submitted.add('$orderItemId:$rating:$comment');
+  }
+}
+
+class FakeReportRepository implements ReportRepository {
+  final List<String> reports = [];
+  AppFailure? failWith;
+
+  @override
+  Future<void> submit(
+    ReportTarget target,
+    String targetId,
+    ReportReason reason, {
+    String? details,
+  }) async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    reports.add('${target.name}:$targetId:${reason.name}:$details');
+  }
+}
+
+class FakeStatisticsRepository implements StatisticsRepository {
+  SellerStats? stats;
+  SellerDashboard? dashboard;
+  AppFailure? failWith;
+  final List<String> tracked = [];
+  final List<int> requestedDays = [];
+
+  @override
+  Future<SellerStats?> getStats(int days) async {
+    requestedDays.add(days);
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return stats;
+  }
+
+  @override
+  Future<SellerDashboard?> getDashboard() async {
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return dashboard;
+  }
+
+  @override
+  void track(AnalyticsEvent event, String productId) {
+    tracked.add('${event.name}:$productId');
+  }
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   required AuthRepository auth,
@@ -906,6 +1091,11 @@ Future<void> pumpApp(
   CartRepository? cart,
   OrderRepository? orders,
   SalesRepository? sales,
+  ChatRepository? chat,
+  NotificationRepository? notifications,
+  ReviewRepository? reviews,
+  ReportRepository? reports,
+  StatisticsRepository? statistics,
 }) async {
   await tester.pumpWidget(
     BrowslyApp(
@@ -923,6 +1113,11 @@ Future<void> pumpApp(
       cartRepository: cart ?? FakeCartRepository(),
       orderRepository: orders ?? FakeOrderRepository(),
       salesRepository: sales ?? FakeSalesRepository(),
+      chatRepository: chat ?? FakeChatRepository(),
+      notificationRepository: notifications ?? FakeNotificationRepository(),
+      reviewRepository: reviews ?? FakeReviewRepository(),
+      reportRepository: reports ?? FakeReportRepository(),
+      statisticsRepository: statistics ?? FakeStatisticsRepository(),
       theme: AppTheme.light(baseTextTheme: ThemeData().textTheme),
     ),
   );

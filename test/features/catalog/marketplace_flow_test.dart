@@ -340,24 +340,6 @@ void main() {
       expect(buyNow().onPressed, isNull);
     });
 
-    testWidgets('Chat with seller says it is coming, not silently nothing', (
-      tester,
-    ) async {
-      await pumpOnTallPhone(
-        tester,
-        auth: FakeAuthRepository(),
-        catalog: seededCatalog(),
-      );
-      await openProducts(tester);
-      await openProduct(tester, 'Cotton Panjabi');
-
-      await tester.ensureVisible(find.text('Chat with seller'));
-      await tester.tap(find.text('Chat with seller'));
-      await tester.pump();
-
-      expect(find.text('Chat with seller is coming soon.'), findsOneWidget);
-    });
-
     testWidgets('a removed product explains itself', (tester) async {
       await pumpOnTallPhone(
         tester,

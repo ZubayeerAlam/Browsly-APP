@@ -18,6 +18,17 @@ String buyingFailureMessage(AppFailure failure) {
     'PHONE_NOT_VERIFIED' => 'Please verify your phone number first.',
     'ADDRESS_NOT_FOUND' => 'Please choose another delivery address.',
     'ACCOUNT_SUSPENDED' => 'Your account is suspended. Please contact support.',
+    'CONVERSATION_NOT_FOUND' => 'We could not find this chat.',
+    'INVALID_MESSAGE' => 'Please write a message of up to 2,000 characters.',
+    'MESSAGE_RATE_LIMIT' =>
+      'You are sending messages too quickly. Please wait a moment.',
+    'NOT_REVIEWABLE' => 'You can review this once your order is complete.',
+    'ALREADY_REVIEWED' => 'You have already reviewed this item.',
+    'INVALID_RATING' => 'Please choose from 1 to 5 stars.',
+    'REVIEW_TOO_LONG' => 'Please keep your review under 1,000 characters.',
+    'REPORT_TARGET_NOT_FOUND' => 'This is no longer available to report.',
+    'REPORT_TOO_LONG' => 'Please keep the details under 1,000 characters.',
+    'REPORT_LIMIT' => 'You have sent many reports today. Please try tomorrow.',
     'NOT_A_SELLER' => 'Your shop is not able to do this right now.',
     'INVALID_STATUS_CHANGE' =>
       'This order has already moved on. Please check its status.',

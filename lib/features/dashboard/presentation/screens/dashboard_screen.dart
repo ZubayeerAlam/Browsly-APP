@@ -12,8 +12,11 @@ import '../../../catalog/domain/entities/category.dart';
 import '../../../catalog/domain/entities/product.dart';
 import '../../../catalog/presentation/widgets/category_icon.dart';
 import '../../../catalog/presentation/widgets/product_card.dart';
+import '../../../notifications/presentation/widgets/top_bar_icons.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../profile/presentation/widgets/profile_avatar.dart';
+import '../../../statistics/presentation/providers/seller_dashboard_provider.dart';
+import '../../../statistics/presentation/widgets/seller_summary_card.dart';
 import '../providers/home_provider.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -36,6 +39,10 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
         actions: [
+          if (isSignedIn) ...[
+            const ChatIconButton(),
+            const NotificationIconButton(),
+          ],
           const CartIconButton(),
           if (isSignedIn)
             const _AccountMenu()
@@ -120,11 +127,15 @@ class _HomeBody extends StatelessWidget {
           : const LoadingView();
     }
     return RefreshIndicator(
-      onRefresh: provider.load,
+      onRefresh: () async {
+        final seller = context.read<SellerDashboardProvider>();
+        await Future.wait([provider.load(), seller.load()]);
+      },
       child: ListView(
         padding: const EdgeInsets.only(top: 8, bottom: 24),
         children: [
           const _SearchBar(),
+          const SellerSummaryCard(),
           const _Banner(),
           if (content.categories.isNotEmpty)
             _CategoryRow(categories: content.categories),

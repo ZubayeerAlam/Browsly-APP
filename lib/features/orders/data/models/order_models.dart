@@ -9,7 +9,7 @@ abstract final class OrderModel {
       'seller_order_groups(id, shop_id, shop_name, status, subtotal, '
       'delivery_fee, shipping_address, created_at, '
       'order_items(id, product_id, product_title, variant_name, image_path, '
-      'unit_price, quantity, line_total, created_at), '
+      'unit_price, quantity, line_total, created_at, reviews(rating)), '
       'order_status_history(to_status, note, created_at))';
 
   static OrderStatus statusFromJson(String value) {
@@ -160,6 +160,8 @@ abstract final class OrderModel {
       unitPrice: (json['unit_price'] as num).toDouble(),
       quantity: (json['quantity'] as num).toInt(),
       lineTotal: (json['line_total'] as num).toDouble(),
+      myRating: ((json['reviews'] as Map<String, dynamic>?)?['rating'] as num?)
+          ?.toInt(),
     );
   }
 
