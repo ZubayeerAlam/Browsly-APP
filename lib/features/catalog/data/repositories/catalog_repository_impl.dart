@@ -1,5 +1,6 @@
 import '../../../../core/errors/error_mapper.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/home_banner.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/product_filters.dart';
 import '../../domain/entities/shop.dart';
@@ -11,6 +12,23 @@ class CatalogRepositoryImpl implements CatalogRepository {
   const CatalogRepositoryImpl(this._dataSource);
 
   final CatalogRemoteDataSource _dataSource;
+
+  @override
+  Future<List<HomeBanner>> getBanners() {
+    return guardFailures(() async {
+      final rows = await _dataSource.fetchBanners();
+      return rows
+          .map(
+            (row) => HomeBanner(
+              id: row['id'] as String,
+              imageUrl: _dataSource.bannerImageUrl(row['image_path'] as String),
+              title: row['title'] as String,
+              productId: row['product_id'] as String?,
+            ),
+          )
+          .toList();
+    });
+  }
 
   @override
   Future<List<Category>> getCategories() {

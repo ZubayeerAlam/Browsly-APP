@@ -1,6 +1,7 @@
 import 'package:browsly_app/core/errors/app_failure.dart';
 import 'package:browsly_app/core/widgets/app_network_image.dart';
 import 'package:browsly_app/core/widgets/pill_chip.dart';
+import 'package:browsly_app/features/catalog/domain/entities/home_banner.dart';
 import 'package:browsly_app/features/chat/domain/entities/chat.dart';
 import 'package:browsly_app/features/chat/presentation/providers/chat_room_provider.dart';
 import 'package:browsly_app/features/notifications/domain/entities/app_notification.dart';
@@ -482,6 +483,31 @@ void main() {
 
       final button = find.widgetWithText(FilledButton, 'Send report');
       expect(tester.widget<FilledButton>(button).onPressed, isNull);
+    });
+  });
+
+  group('Home banners', () {
+    testWidgets('a banner shows, and opens its product', (tester) async {
+      catalog.banners = const [
+        HomeBanner(
+          id: 'b1',
+          imageUrl: 'b.jpg',
+          title: 'Eid sale',
+          productId: '1',
+        ),
+      ];
+      await pump(tester);
+
+      await tester.tap(find.byType(PageView));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Buy Now'), findsOneWidget);
+    });
+
+    testWidgets('no banners leaves no gap', (tester) async {
+      await pump(tester);
+
+      expect(find.byType(PageView), findsNothing);
     });
   });
 

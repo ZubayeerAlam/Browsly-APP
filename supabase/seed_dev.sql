@@ -3,6 +3,40 @@
 -- The demo sellers have no password, so nobody can sign in as them. The photos
 -- are plain generated images from supabase/seed_images/demo.
 
+-- A local admin for the web panel. In production, admins are added by hand:
+--   insert into public.admin_users (user_id) values ('<their account id>');
+insert into auth.users (
+  id, instance_id, aud, role, email, email_confirmed_at, encrypted_password,
+  raw_user_meta_data, raw_app_meta_data,
+  confirmation_token, recovery_token, email_change_token_new, email_change,
+  email_change_token_current, phone_change, phone_change_token, reauthentication_token,
+  created_at, updated_at
+)
+values (
+  'a0000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000',
+  'authenticated', 'authenticated', 'admin@browsly.test', now(),
+  extensions.crypt('local-admin-password', extensions.gen_salt('bf')),
+  '{"full_name": "Local Admin"}', '{"provider": "email", "providers": ["email"]}',
+  '', '', '', '', '', '', '', '',
+  now(), now()
+)
+on conflict (id) do nothing;
+
+insert into auth.identities (
+  id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at
+)
+values (
+  'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001',
+  'a0000000-0000-4000-8000-000000000001', 'email',
+  '{"sub": "a0000000-0000-4000-8000-000000000001", "email": "admin@browsly.test", "email_verified": true}',
+  now(), now(), now()
+)
+on conflict do nothing;
+
+insert into public.admin_users (user_id)
+values ('a0000000-0000-4000-8000-000000000001')
+on conflict (user_id) do nothing;
+
 insert into auth.users (
   id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data,
   confirmation_token, recovery_token, email_change_token_new, email_change

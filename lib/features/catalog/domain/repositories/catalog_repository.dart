@@ -1,10 +1,14 @@
 import '../entities/category.dart';
+import '../entities/home_banner.dart';
 import '../entities/product.dart';
 import '../entities/product_filters.dart';
 import '../entities/shop.dart';
 
 abstract interface class CatalogRepository {
   Future<List<Category>> getCategories();
+
+  /// The banners showing now, in order. The admin panel manages them.
+  Future<List<HomeBanner>> getBanners();
 
   Future<ProductPage> searchProducts(
     ProductFilters filters, {

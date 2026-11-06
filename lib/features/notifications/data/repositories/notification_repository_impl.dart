@@ -22,6 +22,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         'listing_live' => AppNotificationType.listingLive,
         'listing_rejected' => AppNotificationType.listingRejected,
         'commission_payment' => AppNotificationType.commissionPayment,
+        'report_update' => AppNotificationType.reportUpdate,
         _ => AppNotificationType.orderUpdate,
       },
       title: json['title'] as String,

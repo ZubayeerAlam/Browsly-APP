@@ -14,6 +14,18 @@ class CatalogRemoteDataSource {
   String shopAssetUrl(String path) =>
       _client.storage.from(_shopBucket).getPublicUrl(path);
 
+  String bannerImageUrl(String path) =>
+      _client.storage.from('banners').getPublicUrl(path);
+
+  /// RLS limits this to banners showing now.
+  Future<List<Map<String, dynamic>>> fetchBanners() {
+    return _client
+        .from('home_banners')
+        .select('id, image_path, title, product_id')
+        .order('sort_order', ascending: true)
+        .limit(10);
+  }
+
   Future<List<Map<String, dynamic>>> fetchCategories() async {
     final rows = await _client.rpc<List<dynamic>>('get_categories_with_counts');
     return rows.cast<Map<String, dynamic>>();

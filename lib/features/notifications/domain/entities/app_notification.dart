@@ -6,6 +6,7 @@ enum AppNotificationType {
   listingLive,
   listingRejected,
   commissionPayment,
+  reportUpdate,
 }
 
 class AppNotification {

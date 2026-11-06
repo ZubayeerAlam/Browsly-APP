@@ -89,6 +89,7 @@ class _NotificationRow extends StatelessWidget {
     AppNotificationType.listingRejected => Icons.report_gmailerrorred_rounded,
     AppNotificationType.commissionPayment =>
       Icons.account_balance_wallet_outlined,
+    AppNotificationType.reportUpdate => Icons.flag_outlined,
   };
 
   @override

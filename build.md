@@ -25,7 +25,7 @@ Full details are in [plan.md](plan.md).
 - [x] Step 4: Buying
 - [x] Step 5: Sales and commission
 - [ ] Step 6: Chat and trust (in progress: needs your Firebase project for push)
-- [ ] Step 7: Admin panel
+- [x] Step 7: Admin panel
 - [ ] Step 8: Launch prep
 
 ---
@@ -157,20 +157,23 @@ Full details are in [plan.md](plan.md).
 
 ## Step 7: Admin panel
 
-- [ ] Create `admin_web`, admin login and `is_admin()` checks
-- [ ] Product Review queue: listing, images, AI reason, approve or reject with a reason
-- [ ] Overview (including queue count), users, products, orders
-- [ ] Suspending a seller also turns off their shop, which hides their products
-- [ ] Categories, settings (commission rate and limits), banners
-- [ ] Reports, and a settlement screen using `admin_record_settlement`
-- [ ] Audit tests
+- [x] Create `admin_web`, admin login and `is_admin()` checks
+- [x] Product Review queue: listing, images, AI reason, approve or reject with a reason
+- [x] Overview (including queue count), users, products, orders
+- [x] Suspending a seller also turns off their shop, which hides their products
+- [x] Categories, settings (commission rate and limits), banners
+- [x] Reports, and a settlement screen using `admin_record_settlement`
+- [x] Audit tests
 
 **Done when:** an admin can decide queued products and record a settlement, and a non-admin is refused by the server.
+
+**Status:** complete. Verified in a browser against the local database, using the local admin from `supabase/seed_dev.sql`. Choosing a banner image in the browser's file picker wasn't clicked through; the upload and banner rules were tested directly, and the banner showed in the mobile app.
 
 ## Step 8: Launch prep
 
 - [ ] Set the production Google redirect URL, and use https for the production server
-- [ ] Complete RLS audit and secret scan
+- [ ] Complete RLS audit and secret scan (`admin.test.sql` already checks every table and admin function)
+- [ ] Host `admin_web` and add the real admins: `insert into public.admin_users (user_id) values ('<their account id>');`
 - [ ] Daily clean-up of photo files that no listing uses
 - [ ] Set production secrets: `project_url`, `moderation_secret` and `push_secret` in the Vault, `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on `moderate-product`, and `PUSH_SECRET` and `FIREBASE_SERVICE_ACCOUNT` on `send-push`. Never set `MODERATION_PROVIDER` there
 - [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds

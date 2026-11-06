@@ -10,6 +10,7 @@ import 'package:browsly_app/features/auth/domain/repositories/auth_repository.da
 import 'package:browsly_app/features/cart/domain/entities/cart.dart';
 import 'package:browsly_app/features/cart/domain/repositories/cart_repository.dart';
 import 'package:browsly_app/features/catalog/domain/entities/category.dart';
+import 'package:browsly_app/features/catalog/domain/entities/home_banner.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product.dart';
 import 'package:browsly_app/features/catalog/domain/entities/product_filters.dart';
 import 'package:browsly_app/features/catalog/domain/entities/shop.dart';
@@ -288,6 +289,11 @@ ProductDetail testDetail(
 
 /// An in-memory catalog with cursor paging like the server's.
 class FakeCatalogRepository implements CatalogRepository {
+  List<HomeBanner> banners = [];
+
+  @override
+  Future<List<HomeBanner>> getBanners() async => banners;
+
   List<ProductSummary> products = [];
   List<Category> categories = [];
   final Map<String, ProductDetail> details = {};

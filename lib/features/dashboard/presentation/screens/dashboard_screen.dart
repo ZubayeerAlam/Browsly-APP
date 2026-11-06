@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/state/view_state.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../cart/presentation/widgets/cart_icon_button.dart';
 import '../../../catalog/domain/entities/category.dart';
+import '../../../catalog/domain/entities/home_banner.dart';
 import '../../../catalog/domain/entities/product.dart';
 import '../../../catalog/presentation/widgets/category_icon.dart';
 import '../../../catalog/presentation/widgets/product_card.dart';
@@ -136,6 +138,8 @@ class _HomeBody extends StatelessWidget {
         children: [
           const _SearchBar(),
           const SellerSummaryCard(),
+          if (content.banners.isNotEmpty)
+            _PromoBanners(banners: content.banners),
           const _Banner(),
           if (content.categories.isNotEmpty)
             _CategoryRow(categories: content.categories),
@@ -186,6 +190,46 @@ class _SearchBar extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What the admin panel has chosen to promote.
+class _PromoBanners extends StatelessWidget {
+  const _PromoBanners({required this.banners});
+
+  final List<HomeBanner> banners;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: AspectRatio(
+        aspectRatio: 3,
+        child: PageView(
+          controller: PageController(viewportFraction: 0.92),
+          children: [
+            for (final banner in banners)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: banner.productId == null
+                        ? null
+                        : () => context.push(
+                            AppRoutes.product(banner.productId!),
+                          ),
+                    child: AppNetworkImage(
+                      url: banner.imageUrl,
+                      semanticLabel: banner.title,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
