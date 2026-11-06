@@ -59,11 +59,11 @@ Full details are in [plan.md](plan.md).
 - [x] Profile and avatar (photo location data is removed before upload)
 - [x] Addresses with Bangladesh regions
 - [x] Account deletion (`delete-account`)
-- [ ] Finish testing on a real Android phone, including the Step 3 and Step 5 seller screens. Passed on a moto g96: Google, email and phone sign-in, phone verification, addresses. Still to test: password reset, profile photo, account deletion
+- [ ] Finish testing on a real Android phone, including the Step 3 and Step 5 seller screens. Passed on a moto g96: Google, email and phone sign-in, phone verification, addresses. Password reset, profile photo, account deletion, opening a shop and posting with photos passed on the iOS Simulator (6 Nov 2026). Still to run on the Android phone: those same screens, the seller screens and the Call button. The Android emulator is too slow to use on this Mac (8 GB of memory)
 
 **Done when:** all three sign-in methods work on a real device, and users cannot read each other's private data.
 
-**Status:** in progress. All three sign-in methods work on a real Android phone against the local server, using test numbers for phone sign-in. Real emails and texts aren't sent locally. To finish: real SMS, and the rest of the Android test.
+**Status:** in progress. All three sign-in methods work on a real Android phone against the local server, using test numbers for phone sign-in. Real emails and texts aren't sent locally. To finish: real SMS, and the rest of the Android test. Testing password reset found that chat and live badges stayed silent after a reset, until the app restarted. This is fixed in `lib/core/utils/realtime_auth.dart` and rechecked on the iOS Simulator.
 
 ## Step 2: Marketplace
 
@@ -167,7 +167,7 @@ Full details are in [plan.md](plan.md).
 
 **Done when:** an admin can decide queued products and record a settlement, and a non-admin is refused by the server.
 
-**Status:** complete. Verified in a browser against the local database, using the local admin from `supabase/seed_dev.sql`. Choosing a banner image in the browser's file picker wasn't clicked through; the upload and banner rules were tested directly, and the banner showed in the mobile app.
+**Status:** complete. Verified in a browser against the local database, using the local admin from `supabase/seed_dev.sql`. Report actions (uphold, dismiss, remove listing, hide review), settings and categories were all clicked through. Choosing a banner image in the browser's file picker wasn't clicked through; the upload and banner rules were tested directly, and the banner showed in the mobile app.
 
 ## Step 8: Launch prep
 

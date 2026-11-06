@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/error_mapper.dart';
+import '../../../../core/utils/realtime_auth.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/notification_repository.dart';
 
@@ -84,6 +85,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     late final StreamController<AppNotification> controller;
     controller = StreamController<AppNotification>(
       onListen: () {
+        syncRealtimeAuth(_client);
         channel = _client
             .channel('notifications:$userId')
             .onPostgresChanges(

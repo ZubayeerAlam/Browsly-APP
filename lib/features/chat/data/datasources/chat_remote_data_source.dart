@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/realtime_auth.dart';
+
 class ChatRemoteDataSource {
   const ChatRemoteDataSource(this._client);
 
@@ -81,6 +83,7 @@ class ChatRemoteDataSource {
     late final StreamController<Map<String, dynamic>> controller;
     controller = StreamController<Map<String, dynamic>>(
       onListen: () {
+        syncRealtimeAuth(_client);
         channel = _client
             .channel('messages:$id')
             .onPostgresChanges(
