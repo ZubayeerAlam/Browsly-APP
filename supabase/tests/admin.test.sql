@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(48);
+select plan(49);
 
 insert into auth.users (id, email)
 values
@@ -90,7 +90,7 @@ select is(
    from information_schema.role_table_grants
    where table_schema = 'public' and grantee = 'authenticated'
      and privilege_type in ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')),
-  array['addresses', 'platform_settings', 'wishlist_items'],
+  array['addresses', 'wishlist_items'],
   'Users can write to only the expected tables');
 
 select is(
@@ -127,7 +127,9 @@ select throws_ok(
   $$ select public.admin_record_settlement('00000000-0000-0000-0000-0000000003e1', 1, 'bank', 'R') $$,
   'NOT_AN_ADMIN', 'Recording a settlement is refused');
 select is((select count(*)::integer from public.admin_actions), 0, 'The admin record cannot be read');
-update public.platform_settings set commission_rate = 77;
+select throws_ok(
+  $$ update public.platform_settings set commission_rate = 77 $$,
+  '42501', null, 'Users are refused when they change settings directly');
 reset role;
 
 select isnt(

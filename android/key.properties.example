@@ -1,0 +1,9 @@
+# Copy this file to android/key.properties. Git ignores the copy and the key.
+# Keep a backup of the key and its passwords: losing them can block app updates.
+#
+# Create the key once with:
+#   keytool -genkey -v -keystore ~/browsly-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+storeFile=/absolute/path/to/browsly-upload.jks
+storePassword=your-keystore-password
+keyAlias=upload
+keyPassword=your-key-password

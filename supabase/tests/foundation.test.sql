@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(10);
 
 select is(
   (select count(*)::int from public.regions where level = 'division'),
@@ -54,7 +54,12 @@ set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-000000000001", 
 
 select is(public.is_admin(), false, 'Normal users are not admins');
 
-update public.platform_settings set commission_rate = 0;
+select throws_ok(
+  $$ update public.platform_settings set commission_rate = 0 $$,
+  '42501',
+  null,
+  'Normal users are refused when they change settings'
+);
 
 reset role;
 select is(

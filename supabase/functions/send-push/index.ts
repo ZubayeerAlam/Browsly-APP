@@ -13,6 +13,15 @@ import {
   type ServiceAccount,
 } from "./push.ts";
 
+async function secretsMatch(given: string, expected: string) {
+  const digest = async (text: string) =>
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+    );
+  const [a, b] = await Promise.all([digest(given), digest(expected)]);
+  return a.reduce((difference, byte, i) => difference | (byte ^ b[i]), 0) === 0;
+}
+
 function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
@@ -39,7 +48,8 @@ async function getAccessToken(account: ServiceAccount): Promise<string> {
 
 Deno.serve(async (request) => {
   const secret = Deno.env.get("PUSH_SECRET");
-  if (!secret || request.headers.get("x-push-secret") !== secret) {
+  const given = request.headers.get("x-push-secret");
+  if (!secret || !given || !(await secretsMatch(given, secret))) {
     return jsonResponse(401, { code: "UNAUTHORIZED" });
   }
 

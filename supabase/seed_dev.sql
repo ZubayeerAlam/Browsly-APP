@@ -206,3 +206,5 @@ select vault.create_secret('http://supabase_kong_browsly:8000', 'project_url')
 where not exists (select 1 from vault.secrets where name = 'project_url');
 select vault.create_secret('local-dev-moderation-secret', 'moderation_secret')
 where not exists (select 1 from vault.secrets where name = 'moderation_secret');
+select vault.create_secret('local-dev-cleanup-secret', 'cleanup_secret')
+where not exists (select 1 from vault.secrets where name = 'cleanup_secret');

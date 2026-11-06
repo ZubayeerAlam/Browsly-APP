@@ -172,14 +172,16 @@ Full details are in [plan.md](plan.md).
 ## Step 8: Launch prep
 
 - [ ] Set the production Google redirect URL, and use https for the production server
-- [ ] Complete RLS audit and secret scan (`admin.test.sql` already checks every table and admin function)
+- [x] RLS audit and secret scan (6 Nov 2026). Fixed: people who filed a report could read the admin's private note and the outcome through the API, and admins could change settings directly, skipping the checks and the admin record. `launch.test.sql` covers both. No secret key is in the repository, its history, or the iOS, web and Android builds. Repeat the audit on production settings before launch
 - [ ] Host `admin_web` and add the real admins: `insert into public.admin_users (user_id) values ('<their account id>');`
-- [ ] Daily clean-up of photo files that no listing uses
-- [ ] Set production secrets: `project_url`, `moderation_secret` and `push_secret` in the Vault, `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on `moderate-product`, and `PUSH_SECRET` and `FIREBASE_SERVICE_ACCOUNT` on `send-push`. Never set `MODERATION_PROVIDER` there
-- [ ] Performance check with large seed data. At 50,000 products, browsing took about 0.5 seconds and a search on a very common word took 2.6 seconds
-- [ ] Terms, privacy policy, seller terms and listing policy (legal review)
+- [x] Daily clean-up of photo files that no listing uses (`clean-photos`). It keeps new files for 2 days, and keeps photos on past orders. Tested against real files on the local stack
+- [ ] Set production secrets: `project_url`, `moderation_secret`, `push_secret` and `cleanup_secret` in the Vault, `MODERATION_SECRET`, `GEMINI_API_KEY` and `GEMINI_MODEL` on `moderate-product`, `PUSH_SECRET` and `FIREBASE_SERVICE_ACCOUNT` on `send-push`, and `CLEANUP_SECRET` on `clean-photos`. Never set `MODERATION_PROVIDER` there
+- [x] Performance check with large seed data (6 Nov 2026, on the local stack). At 5,000 products, every browse and search took under 0.16 seconds. At 50,000, home took about 0.4 seconds and searches took 1 to 1.7 seconds, growing in step with catalog size. No change needed for launch. Speed up `search_products` before the catalog reaches about 20,000 live products
+- [ ] Terms, privacy policy and seller terms (drafts in `docs/legal/`; **need your business details and legal review**), and the listing policy
+- [ ] Host the legal pages and link them from About Browsly and sign-up. Both stores need a privacy policy link
 - [ ] Put Browsly's real bKash and bank details on the Commission screen
-- [ ] App icons and store listings
+- [ ] Android upload key (**needs you to create and back it up**, see `android/key.properties.example`). The release build and signing were tested with a throwaway key
+- [ ] App icons and store listings. The app still shows the default Flutter icon and launch screen
 - [ ] Staging → production migration rehearsal and backups. Apply only `seed.sql` to production, never `seed_dev.sql`, and never use `db push --include-seed`
 - [ ] Closed beta with real sellers
 - [ ] Fix beta issues
